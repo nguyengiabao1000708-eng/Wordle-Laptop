@@ -18,10 +18,6 @@ class Wordle:
         return left
     
     def guess_word(self,word):
-
-
-
-
         result = [Letter_state(char) for char in word] # Tạo list Letter_state
         
         # 1. Khởi tạo bộ đếm số lần xuất hiện của các chữ cái trong từ bí mật
@@ -59,12 +55,6 @@ class Wordle:
                     letter_counts[char] -= 1
                     
         return result
-    
-
-
-
-
-    
         # result = []
         # for i in range (self.WORDS_LENGTH):
         #     char = word[i]

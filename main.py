@@ -1,6 +1,15 @@
 from wordle_logic import Wordle
 import random        
 def display_result(wordle):
+    if " " in wordle.secret:
+        vn_words =[]
+        for i in wordle.secret:
+            if i == " ":
+                vn_words.append(i)
+            else:
+                vn_words.append("_")
+        print(" ".join(vn_words))
+
     for word in wordle.attempts:
         result = wordle.guess_word(word)
         print(*result, sep=" ") 
@@ -30,15 +39,17 @@ def check_valid_words(word,file):
     else:
         return True
 
-
-
 def main():
     wordle = Wordle(words("data/valid_word_with_length_n.txt"))
     while wordle.can_attempts():
+        display_result(wordle)
 
         guess = input("GUESS THE WORD: ").upper()
+        if guess in wordle.attempts:
+            print("Already guessed !!")
+            continue
         if guess == "REVEAL":
-            print(wordle.secret)
+            print(f"the answer is {wordle.secret}")
             break
         if len(guess) != wordle.WORDS_LENGTH:
             print(f"the word's length is {wordle.WORDS_LENGTH} ")
@@ -50,17 +61,16 @@ def main():
         wordle.attempt(guess)
 
         if wordle.is_solved():
-            display_result(wordle)
             print("YOU GUESSED RIGHT !!")
             break
         else:
-            display_result(wordle)
-            print("GUESS AGAIN !!")
+            print("\nGUESS AGAIN !!")
             print(wordle.attempts_remaining())
     else:
+
+        display_result(wordle)
         print("YOU LOSE, LOSER !!")
-
-
+        print(f"the answer is : {wordle.secret}")
 
 if __name__ == "__main__":
     main()
