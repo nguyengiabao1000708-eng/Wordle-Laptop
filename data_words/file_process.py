@@ -20,23 +20,27 @@ def choose_all_words(n,file_input,file_output):
 
     with open(file_output, "w") as all_wf:
         all_wf.write("\n".join(word))
+
+def default():
+    choose_common_words(5,"data_words/common_words_eng.txt","data_words/valid_word_with_length_n.txt")
+    choose_all_words(5,"data_words/all_words_eng.txt","data_words/word_with_length_n.txt")
+    
 def main():
     while True:
         language = input("vietnamese or english: ").lower()
         if language == "vietnamese":
             n = int(input("Chooose the word's length: "))   
-            choose_common_words(n,"common_words_vn.txt","valid_word_with_length_n.txt")
-            choose_all_words(n,"all_words_vn.txt","word_with_length_n.txt")
+            choose_common_words(n,"data_words/common_words_vn.txt","data_words/valid_word_with_length_n.txt")
+            choose_all_words(n,"data_words/all_words_vn.txt","data_words/word_with_length_n.txt")
             break
         elif language == "english":
             n = int(input("Chooose the word's length: "))
-            choose_common_words(n,"common_words_eng.txt","valid_word_with_length_n.txt")
-            choose_all_words(n,"all_words_eng.txt","word_with_length_n.txt")
+            choose_common_words(n,"data_words/common_words_eng.txt","data_words/valid_word_with_length_n.txt")
+            choose_all_words(n,"data_words/all_words_eng.txt","data_words/word_with_length_n.txt")
             break
         else:
             print("Unvalid, please type again!!")
 
-main()
 
 # words = []
 # with open("vi_dictionary.csv", "r") as f:

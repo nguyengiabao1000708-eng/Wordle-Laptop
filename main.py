@@ -1,5 +1,8 @@
 from wordle_logic import Wordle
-import random        
+import random
+from user_manager import UserManager
+import data_words.file_process as f
+
 def display_result(wordle):
     if " " in wordle.secret:
         vn_words =[]
@@ -40,21 +43,42 @@ def check_valid_words(word,file):
         return True
 
 def main():
-    wordle = Wordle(words("data/valid_word_with_length_n.txt"))
+
+    username = input("USERNAME: ")
+
+    while True:
+        a = input("CHANGE MODE OR PLAY DEFAULT: ").upper()
+        if a == "CHANGE MODE":
+            f.main()
+            break
+        elif a == "PLAY DEFAULT":
+            f.default()
+            break
+        else:
+            print("unvalid")
+
+    user= UserManager()
+    wordle = Wordle(words("data_words/valid_word_with_length_n.txt"))
+    is_win = False
+
     while wordle.can_attempts():
         display_result(wordle)
 
         guess = input("GUESS THE WORD: ").upper()
+        if guess == "REVEAL":
+            print("YOU LOSE, LOSER !!")
+            user.update_stats(username,is_win,len(wordle.attempts))
+            print(f"the answer is : {wordle.secret}")
+            print(user.get_stats_summary(username))
+            break
+
         if guess in wordle.attempts:
             print("Already guessed !!")
             continue
-        if guess == "REVEAL":
-            print(f"the answer is {wordle.secret}")
-            break
         if len(guess) != wordle.WORDS_LENGTH:
             print(f"the word's length is {wordle.WORDS_LENGTH} ")
             continue
-        if check_valid_words(guess,"data/word_with_length_n.txt") == False:
+        if check_valid_words(guess,"data_words/word_with_length_n.txt") == False:
             print("Not a real word !!")
             continue
 
@@ -62,15 +86,22 @@ def main():
 
         if wordle.is_solved():
             print("YOU GUESSED RIGHT !!")
+            is_win = True
+            user.update_stats(username,is_win,len(wordle.attempts))
+            user.get_stats_summary(username)
+            display_result(wordle)
             break
         else:
-            print("\nGUESS AGAIN !!")
-            print(wordle.attempts_remaining())
+            print(" ")
+            # print("\nGUESS AGAIN !!")
+            # print(wordle.attempts_remaining())
     else:
 
         display_result(wordle)
         print("YOU LOSE, LOSER !!")
+        user.update_stats(username,is_win,len(wordle.attempts))
         print(f"the answer is : {wordle.secret}")
+        user.get_stats_summary(username)
 
 if __name__ == "__main__":
     main()
