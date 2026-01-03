@@ -1,0 +1,7 @@
+- references:
+    - https://github.com/winstonleedev/tudien ( data vn)
+    - https://huggingface.co/datasets/tsdocode/vietnamese-dictionary/tree/main ( data vn)
+    - https://github.com/dwyl/english-words ( data eng)
+    - https://github.com/mahsu/IndexingExercise/blob/master/5000-words.txt ( data eng)
+- tutorial support references:
+    - https://www.youtube.com/watch?v=SyWeex-S6d0&t=2251s

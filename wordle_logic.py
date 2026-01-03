@@ -2,11 +2,12 @@ from letter_state import Letter_state
 from collections import Counter
 
 class Wordle:
-    MAX_ATTEMPTS = 6
+    MAX_ATTEMPTS = 5
 
     def __init__(self, word):
         self.secret = word
         self.attempts =[]
+        self.redo_stack =[]
         self.WORDS_LENGTH = len(word)
         pass
 
@@ -55,17 +56,7 @@ class Wordle:
                     letter_counts[char] -= 1
                     
         return result
-        # result = []
-        # for i in range (self.WORDS_LENGTH):
-        #     char = word[i]
-        #     letter = Letter_state(char)
-        #     if char in self.secret:
-        #         letter.right_letter = True
-        #         if char == self.secret[i]:
-        #             letter.right_position = True
-        #     result.append(letter)
-        # return result
-
+    
     def is_solved(self):
         if self.attempts[-1] == self.secret:
             return True
@@ -77,6 +68,23 @@ class Wordle:
             return True
         else:
             return False
+        
+    def undo(self):
+        if not self.attempts:
+            print("Nothing to undo")
+            return
+        undo_words = self.attempts.pop()
+        self.redo_stack.append(undo_words)
+        return
+    
+    def redo(self):
+        if not self.redo_stack:
+            print("Nothing to redo")
+            return
+        redo_words = self.redo_stack.pop()
+        self.attempts.append(redo_words)
+        pass
+
     
 
     
