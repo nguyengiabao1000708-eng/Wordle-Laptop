@@ -3,7 +3,7 @@ import os
 from datetime import date
 
 class UserNode:
-    def __init__(self,username):
+    def __init__(self, username):
         self.username = username
         self.games_played =0
         self.total_wins = 0
@@ -14,7 +14,7 @@ class UserNode:
 class UserManager:
     def __init__(self):
         self.head = None
-        self.file_path = "data/users_data/users.bin"
+        self.file_path = "source/data/users_data/users.bin"
         self.name_size = 10
         self.int_size = 4
         self.record_size = 26
@@ -38,7 +38,6 @@ class UserManager:
                 
                 f.write(buffer)
                 current = current.next
-        print("Data saved successfully (Manual mode).")
 
     def load_data(self):
         if not os.path.exists(self.file_path):
@@ -130,7 +129,7 @@ class UserManager:
 
     def player_statistics(self,username):
         user = self.get_player(username)
-        print(f"{user.games_played}{user.total_wins}{user.cur_streak}{user.best_streak}")
+        return(f"{user.games_played}{user.total_wins}{user.cur_streak}{user.best_streak}")
 
 
     def ranking_total_games(self):

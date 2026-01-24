@@ -1,6 +1,6 @@
-pre = "data/words_data/"
-valid_words_n = "data/words_data/valid_word_with_length_n.txt"
-words_n = "data/words_data/word_with_length_n.txt"
+pre = "source/data/words_data/"
+valid_words_n = "source/data/words_data/valid_word_with_length_n.txt"
+words_n = "source/data/words_data/word_with_length_n.txt"
 
 def choose_file(n,file_input,file_output):
     valid_word =[]
@@ -12,31 +12,39 @@ def choose_file(n,file_input,file_output):
 
     with open(file_output, "w") as valid_wf:
         valid_wf.write("\n".join(valid_word))
-
-def default():
-    choose_file(5, pre + "common_words_eng.txt",valid_words_n)
-    choose_file(5, pre + "all_words_eng.txt",words_n)
     
-def main():
-    while True:
-        language = input("vietnamese/english/math: ").lower()
-        if language == "vietnamese":
-            n = int(input("Chooose the word's length: "))   
-            choose_file(n, pre + "common_words_vn.txt", valid_words_n)
-            choose_file(n, pre + "all_words_vn.txt", words_n)
-            break
-        elif language == "english":
-            n = int(input("Chooose the word's length: ")) 
-            choose_file(n, pre + "common_words_eng.txt", valid_words_n)
-            choose_file(n, pre + "all_words_eng.txt", words_n)
-            break
-        elif language == "math":
-            n = int(input("Chooose the equation length: "))
-            choose_file(n, pre + "math.txt", valid_words_n)
-            break
+def main(mode, diff):
+    language = mode
+    n = 5
+    if language == "vietnamese":
+        if diff == "easy":
+            n = 5
+        elif diff == "normal":
+            n = 7
         else:
-            print("Unvalid, please type again!!")
-main()
+            n = 9
+        choose_file(n, pre + "common_words_vn.txt", valid_words_n)
+        choose_file(n, pre + "all_words_vn.txt", words_n)
+    elif language == "english":
+        if diff == "easy":
+            n = 5
+        elif diff == "normal":
+            n = 7
+        else:
+            n = 9
+        choose_file(n, pre + "common_words_eng.txt", valid_words_n)
+        choose_file(n, pre + "all_words_eng.txt", words_n)
+    elif language == "math":
+        if diff == "easy":
+            n = 7
+        elif diff == "normal":
+            n = 10
+        else:
+            n = 13
+        choose_file(n, pre + "math.txt", valid_words_n)
+    else:
+        print("Unvalid, please type again!!")
+
 
 
 

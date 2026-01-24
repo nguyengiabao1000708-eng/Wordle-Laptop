@@ -24,21 +24,18 @@ class Wordle:
         Ví dụ: ['tile-correct', 'tile-absent', 'tile-present', ...]
         """
         guess = guess.upper()
-        # Khởi tạo danh sách kết quả mặc định là xám
+
         result = ["tile-absent"] * self.WORDS_LENGTH
         
-        # Đếm số lượng chữ cái trong từ mục tiêu
         letter_counts = Counter(self.secret)
         
-        # LƯỢT 1: Ưu tiên Xanh lá (Đúng vị trí)
         for i in range(self.WORDS_LENGTH):
             if guess[i] == self.secret[i]:
                 result[i] = "tile-correct"
                 letter_counts[guess[i]] -= 1
                 
-        # LƯỢT 2: Tìm Vàng (Đúng chữ nhưng sai vị trí)
         for i in range(self.WORDS_LENGTH):
-            if result[i] != "tile-correct": # Chỉ xét những ô chưa xanh
+            if result[i] != "tile-correct": 
                 char = guess[i]
                 if char in letter_counts and letter_counts[char] > 0:
                     result[i] = "tile-present"

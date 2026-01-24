@@ -1,6 +1,6 @@
 import streamlit as st
 import random
-from source import Wordle
+from source import Wordle, UserManager
 import source.file_process as f
 
 #Hàm khởi tạo
@@ -50,8 +50,15 @@ def change_mode():
         d3.button("Hard", on_click=handle_diff_change, args=("hard",))
 
 def username():
+    def save_name():
+        if st.session_state.temp:
+            st.session_state.username = st.session_state.temp
+
     with st.popover("Username"):
-        st.text_input("Player's username: ", key= "username" )
+        st.text_input("Player's username: ", key="temp")
+
+        if st.button("Xac nhan ten", on_click=save_name):
+            st.rerun()
 
 
 def navigation():
@@ -60,7 +67,12 @@ def navigation():
         change_mode()
     with col2:
         if st.button("Thông số người chơi", icon= "📈", use_container_width=True):
+            if st.session_state.game_over == True:
+                del st.session_state.is_win
+                del st.session_state.wordle
+                del st.session_state.game_over
             st.switch_page("pages/player_stats.py")
+
     with col3:
         if st.button("Bảng xếp hạng", icon= "📉", use_container_width=True):
             st.switch_page("pages/ranking.py")
@@ -94,6 +106,7 @@ def submit_char(length_limit, wordle):
             st.session_state.is_win = True
         elif wordle.attempts_remaining() ==0 :
             st.session_state.game_over = True
+
     st.session_state.cur_guess = ""
 
 def get_disabled_chars(wordle):
@@ -161,8 +174,12 @@ def render_wordle_board(attempts, wordle):
             board_html += f'<div class="tile"></div>'
         board_html += "</div>"
 
+    rows_to_render = wordle.attempts_remaining()
+    
+    if not st.session_state.game_over:
+        rows_to_render -= 1
 
-    for _ in range (wordle.attempts_remaining()-1):
+    for _ in range (rows_to_render):
         board_html += '<div class="wordle-row">'
         for _ in range(len(wordle.secret)):
             board_html += '<div class="tile"></div>'
@@ -210,12 +227,16 @@ def main():
     init_states()
     wordle = st.session_state.wordle
     target = wordle.secret
+    user_manager = UserManager()
+    user_manager.load_data()
 
     username = st.session_state.username
+    user_manager.get_player(username)
     st.write(username)
 
     navigation()
     render_wordle_board(wordle.attempts, wordle)
+
     if st.session_state.game_over == False:
         render_keyboard(len(target), wordle)
 
@@ -239,19 +260,24 @@ def main():
     #             st.rerun()  
 
     else:
-        if st.session_state.is_win:
-            st.success("You win")
-            st.write(f"The word is: {target}")   
-        else:
-            st.write(f"The word is: {target}") 
-            st.warning("you lose")
-        
-
-        if st.button("Restart Game"):
+        if st.button("new game"):
             del st.session_state.is_win
             del st.session_state.wordle
             del st.session_state.game_over
             st.rerun()
+
+        if st.session_state.is_win:
+            st.success("You win")
+            st.write(f"The word is: {target}")
+            if username != "":
+                user_manager.update_data(username, True)
+        else:
+            st.write(f"The word is: {target}") 
+            st.warning("you lose")
+            if username != "":      
+                user_manager.update_data(username, False)
+        user_manager.save_data()
+            
 
 
 if __name__ == "__main__":
