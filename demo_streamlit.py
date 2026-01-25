@@ -20,6 +20,29 @@ def init_states():
 
 
 #Những hàm liên quan đến thanh bar điều hướng
+def hide_sidebar():
+    st.markdown(
+        """
+        <style>
+            /* Ẩn hoàn toàn sidebar */
+            [data-testid="stSidebar"] {
+                display: none;
+            }
+            /* Ẩn luôn nút mũi tên để mở sidebar (Collapsed Control) */
+            [data-testid="collapsedControl"] {
+                display: none;
+            }
+            /* Mở rộng phần nội dung chính ra giữa màn hình khi không còn sidebar */
+            .main .block-container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+
 def change_mode():
     with st.popover("Đổi Mode", icon= "😎"):
         st.write(f"Mode Hiện tại: {st.session_state.mode}, {st.session_state.diff} ")
@@ -235,6 +258,7 @@ def already_guessed(guess, wordle):
 def main():
     st.set_page_config(page_title="Wordle HCMUS", layout="centered", initial_sidebar_state="collapsed")
     st.title("Wordle Minimalist")
+    hide_sidebar()
 
     init_states()
     wordle = st.session_state.wordle
