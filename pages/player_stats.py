@@ -10,7 +10,7 @@ if game_over == True and is_win == True:
     status = True
 
 st.set_page_config(page_title="Player Statistics", layout="centered")
-st.title("Thống kê nguời chơi")
+st.title("Thống kê người chơi")
 st.write(f"Username: {username}")
 
 user_manager = UserManager()

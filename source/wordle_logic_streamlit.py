@@ -1,8 +1,9 @@
 # from letter_state import Letter_state
 from collections import Counter
+import streamlit as st 
 
 class Wordle:
-    MAX_ATTEMPTS = 5
+    MAX_ATTEMPTS = 6
 
     def __init__(self, word):
         self.secret = word
@@ -57,7 +58,7 @@ class Wordle:
         
     def undo(self):
         if not self.attempts:
-            print("Nothing to undo")
+            st.warning("Nothing to undo")
             return
         undo_words = self.attempts.pop()
         self.redo_stack.append(undo_words)
@@ -65,7 +66,7 @@ class Wordle:
     
     def redo(self):
         if not self.redo_stack:
-            print("Nothing to redo")
+            st.warning("Nothing to redo")
             return
         redo_words = self.redo_stack.pop()
         self.attempts.append(redo_words)

@@ -5,7 +5,7 @@ from datetime import date
 class UserNode:
     def __init__(self, username):
         self.username = username
-        self.games_played =0
+        self.games_played = 0
         self.total_wins = 0
         self.cur_streak = 0
         self.best_streak = 0
@@ -143,13 +143,15 @@ class UserManager:
                 rank_list.append(itr) 
                 itr = itr.next
             
-
             rank_list.sort(key=lambda x: x.games_played, reverse=True)
             
             top_5 = rank_list[:5]
 
+            list = []
+
             for i in top_5:
-                print(f"{i.username} {i.games_played}") 
+                list.append((i.username, i.games_played))
+            return list
 
 
             

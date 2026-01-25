@@ -101,6 +101,7 @@ def submit_char(length_limit, wordle):
         st.warning("Từ không tồn tại")
     else:
         wordle.attempts.append(guess)
+        wordle.redo_stack.clear()
         if guess == wordle.secret:
             st.session_state.game_over = True
             st.session_state.is_win = True
@@ -130,7 +131,13 @@ def render_keyboard(length_limit, wordle):
         row1[i].button(char, on_click = add_char, args = (char, length_limit),
                         use_container_width = True,type = color )
         
-    row2 = st.columns([0.5] + [1]*len(keys[1]) + [0.5])
+    row2 = st.columns([1.5] + [1]*len(keys[1]) + [1.5])
+
+    row2[0].button("UNDO", on_click = wordle.undo,
+                    use_container_width = True)
+    row2[-1].button("REDO", on_click= wordle.redo,
+                     use_container_width=True)   
+    
     for i, char in enumerate(keys[1]):
         if char in disabled_chars:
             color = "tertiary"
@@ -140,8 +147,14 @@ def render_keyboard(length_limit, wordle):
                         use_container_width= True, type = color)
         
     row3 = st.columns([1.5] + [1]*len(keys[2]) + [1.5])
+
+
+
     row3[0].button("ENTER", on_click = submit_char, args = (length_limit, wordle),
                     use_container_width = True)
+    row3[-1].button("⌫", on_click= del_char,
+                     use_container_width=True)
+    
     for i, char in enumerate(keys[2]):
         if char in disabled_chars:
             color = "tertiary"
@@ -149,7 +162,6 @@ def render_keyboard(length_limit, wordle):
             color = "secondary"
         row3[i+1].button(char, on_click = add_char, args = (char, length_limit),
                         use_container_width = True, type = color)
-    row3[-1].button("⌫", on_click= del_char, use_container_width=True)
 
 
 
@@ -276,7 +288,8 @@ def main():
             st.warning("you lose")
             if username != "":      
                 user_manager.update_data(username, False)
-        user_manager.save_data()
+        if username != "":      
+            user_manager.save_data()
             
 
 
