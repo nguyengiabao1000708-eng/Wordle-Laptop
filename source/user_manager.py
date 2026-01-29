@@ -10,6 +10,7 @@ class UserNode:
         self.total_wins = 0
         self.cur_streak = 0
         self.best_streak = 0
+        self.last_played = "1970-01-01"
         self.next = None
 
 class UserManager:
@@ -18,8 +19,9 @@ class UserManager:
         self.file_path = "source/data/users_data/users.bin"
         self.name_size = 10
         self.password_size = 10
+        self.last_played_size = 10
         self.int_size = 4
-        self.record_size = 36 # 10 + 10 + 4 + 4 + 4 + 4
+        self.record_size = 46 # 10 + 10 + 4 + 4 + 4 + 4 + 10
 
     def save_data(self):
         """Lưu dữ liệu người dùng vào file nhị phân."""
@@ -42,6 +44,10 @@ class UserManager:
                 buffer[28:32] = current.cur_streak.to_bytes(self.int_size, 'little')
                 buffer[32:36] = current.best_streak.to_bytes(self.int_size, 'little')
                 
+                last_date_str = str(current.last_played)
+                date_bytes = last_date_str.encode('utf-8')[:10] 
+                buffer[36:36+len(date_bytes)] = date_bytes
+
                 f.write(buffer)
                 current = current.next
 
@@ -66,7 +72,7 @@ class UserManager:
                 user_node.total_wins   = int.from_bytes(data[24:28], 'little')
                 user_node.cur_streak   = int.from_bytes(data[28:32], 'little')
                 user_node.best_streak  = int.from_bytes(data[32:36], 'little')
-
+                user_node.last_played  = data[36:46].decode('utf-8', errors='ignore').rstrip('\x00')
     # def load_data(self):
     #"""Tải dữ liệu người dùng từ file văn bản."""
     #     with open(self.file_path, "r") as f:
@@ -88,7 +94,20 @@ class UserManager:
     #         while current:
     #             line =f"{current.username}|{current.games_played}|{current.total_wins}|{current.cur_streak}|{current.best_streak}\n"
     #             f.write(line)
-    #             current = current.next
+    #             current = current.next]
+
+    def check_can_play(self, username):
+        """Kiểm tra xem người dùng có thể chơi trong ngày hôm nay hay không."""
+        user = self.get_player(username)
+        if user.last_played == str(date.today()):
+            return False
+        return True
+
+    def mark_played_today(self, username):
+        """Đánh dấu người dùng đã chơi trong ngày hôm nay."""
+        user = self.get_player(username)
+        user.last_played = str(date.today())
+        self.save_data()
 
     def insert_at_beginning(self, username, password):
         """Chèn một người dùng mới vào đầu danh sách liên kết."""

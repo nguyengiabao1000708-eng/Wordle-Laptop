@@ -351,33 +351,40 @@ def main():
     navigation()
     render_wordle_board(wordle.attempts, wordle)
     if user:
-        if st.session_state.game_over == False:
-            render_keyboard(len(target), wordle)
+        can_play = user_manager.check_can_play(username)
+        if can_play == False and st.session_state.state == "basic":
+            st.warning("Bạn đã chơi từ hôm nay rồi! Vui lòng quay lại vào ngày mai.")
+            st.warning("Nếu muốn tiếp tục chơi hãy mua gói premium để mở khoá full")
         else:
-
-            if not st.session_state.has_saved :
-                if st.session_state.is_win:
-                        user_manager.update_data(username, True)
-                else:
-                        user_manager.update_data(username, False)
-
-                if username:      
-                    user_manager.save_data()
-
-                st.session_state.has_saved = True
-
-            if st.session_state.is_win:
-                st.success(f"Chúc mừng! Bạn đã đoán đúng từ '{target}'")
+            if st.session_state.game_over == False:
+                render_keyboard(len(target), wordle)
             else:
-                st.error(f"Bạn đã thua! Từ đúng là '{target}'")
-        
-            if st.button("new game"):
-                del st.session_state.is_win
-                del st.session_state.wordle
-                del st.session_state.game_over
-                del st.session_state.cur_guess
-                del st.session_state.has_saved
-                st.rerun()
+
+                if not st.session_state.has_saved :
+                    if st.session_state.is_win:
+                            user_manager.update_data(username, True)
+                    else:
+                            user_manager.update_data(username, False)
+
+                    if username:      
+                        user_manager.save_data()
+
+                    st.session_state.has_saved = True
+
+                if st.session_state.is_win:
+                    st.success(f"Chúc mừng! Bạn đã đoán đúng từ '{target}'")
+                else:
+                    st.error(f"Bạn đã thua! Từ đúng là '{target}'")
+
+                user_manager.mark_played_today(username)
+            
+                if st.button("new game"):
+                    del st.session_state.is_win
+                    del st.session_state.wordle
+                    del st.session_state.game_over
+                    del st.session_state.cur_guess
+                    del st.session_state.has_saved
+                    st.rerun()
     else: 
         if st.session_state.game_over == False:
             render_keyboard(len(target), wordle)
