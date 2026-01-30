@@ -1,4 +1,3 @@
-import json
 import os
 from datetime import date
 
@@ -11,6 +10,10 @@ class UserNode:
         self.cur_streak = 0
         self.best_streak = 0
         self.last_played = "1970-01-01"
+        self.resume_mode = 0
+        self.resume_diff = 0
+        self.resume_target = ""
+        self.resume_attempts = ""
         self.next = None
 
 class UserManager:
@@ -21,7 +24,8 @@ class UserManager:
         self.password_size = 10
         self.last_played_size = 10
         self.int_size = 4
-        self.record_size = 46 # 10 + 10 + 4 + 4 + 4 + 4 + 10
+        self.resume = 80
+        self.record_size = 130 # 10 + 10 + 4 + 4 + 4 + 4 + 10 + 80 (1 + 1 + 13 + (13 * 5 + 4 ))
 
     def save_data(self):
         """Lưu dữ liệu người dùng vào file nhị phân."""
@@ -48,6 +52,17 @@ class UserManager:
                 date_bytes = last_date_str.encode('utf-8')[:10] 
                 buffer[36:36+len(date_bytes)] = date_bytes
 
+                # Giả sử offset bắt đầu từ 46
+                buffer[46:47] = int(current.resume_mode).to_bytes(1, 'little')
+                buffer[47:48] = int(current.resume_diff).to_bytes(1, 'little')
+
+                # Ghi Target và Attempts (vẫn là chuỗi)
+                target_bytes = current.resume_target.encode('utf-8')[:13]
+                buffer[48 : 48 + len(target_bytes)] = target_bytes
+
+                attempts_bytes = current.resume_attempts.encode('utf-8')[:69]
+                buffer[61 : 61 + len(attempts_bytes)] = attempts_bytes
+
                 f.write(buffer)
                 current = current.next
 
@@ -72,7 +87,14 @@ class UserManager:
                 user_node.total_wins   = int.from_bytes(data[24:28], 'little')
                 user_node.cur_streak   = int.from_bytes(data[28:32], 'little')
                 user_node.best_streak  = int.from_bytes(data[32:36], 'little')
+
                 user_node.last_played  = data[36:46].decode('utf-8', errors='ignore').rstrip('\x00')
+
+                user_node.resume_mode     = int.from_bytes(data[46:47], 'little')
+                user_node.resume_diff     = int.from_bytes(data[47:48], 'little')
+
+                user_node.resume_target   = data[48:61].decode('utf-8', errors='ignore').rstrip('\x00')
+                user_node.resume_attempts = data[61:130].decode('utf-8', errors='ignore').rstrip('\x00')
     # def load_data(self):
     #"""Tải dữ liệu người dùng từ file văn bản."""
     #     with open(self.file_path, "r") as f:
@@ -95,6 +117,61 @@ class UserManager:
     #             line =f"{current.username}|{current.games_played}|{current.total_wins}|{current.cur_streak}|{current.best_streak}\n"
     #             f.write(line)
     #             current = current.next]
+
+    def have_resume(self, username):
+        """Kiểm tra người dùng có trạng thái tạm dừng hay không."""
+        user = self.get_player(username)
+        if len(user.resume_attempts) == 0 or len(user.resume_attempts) == 6:
+            return False
+        return True
+
+    def get_resume(self, username):
+        """Lấy trạng thái tạm dừng của người dùng."""
+        user = self.get_player(username)
+        if user.resume_mode == 1:
+            mode = "easy"
+        elif user.resume_mode == 2: 
+            mode = "normal"
+        else:   
+            mode = "hard"
+        if user.resume_diff == 1:
+            diff = "vietnamese"
+        elif user.resume_diff == 2:
+            diff = "english"
+        else:   
+            diff = "math"
+        target = user.resume_target
+        attempts = user.resume_attempts.split(",") if user.resume_attempts else []
+        return mode, diff, target, attempts
+
+    def update_resume (self, mode, diff, target, attempts, username):
+        """Cập nhật trạng thái tạm dừng của người dùng."""
+        user = self.get_player(username)
+
+        if mode == "easy":
+            user.resume_mode = 1
+        elif mode == "normal":
+            user.resume_mode = 2
+        else:
+            user.resume_mode = 3
+
+        if diff == "vietnamese":
+            user.resume_diff = 1
+        elif diff == "english": 
+            user.resume_diff = 2
+        else:
+            user.resume_diff = 3
+        user.resume_target = target
+        user.resume_attempts = ",".join(attempts)
+        self.save_data()
+
+    def clear_resume(self, username):
+        user = self.get_player(username)
+        user.resume_mode = 0
+        user.resume_diff = 0
+        user.resume_target = ""
+        user.resume_attempts = ""
+        self.save_data()
 
     def check_can_play(self, username):
         """Kiểm tra xem người dùng có thể chơi trong ngày hôm nay hay không."""

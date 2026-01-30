@@ -72,12 +72,13 @@ def after_log_in(um):
             with colb:
                 if st.button("Log out"):
                     st.session_state.auth_mode = "Log in"
-                    del st.session_state.is_win
-                    del st.session_state.wordle
-                    del st.session_state.game_overcd 
-                    del st.session_state.cur_guess
-                    del st.session_state.has_saved
-                    st.rerun()
+                    st.session_state.clear()
+                    st.rerun()  
+            if um.have_resume(st.session_state["username"]):
+                st.write("Bạn đang chơi 1 game dang dở. Muốn tiếp tục không?")
+                if st.button("Resume Game"):
+                    st.session_state.has_resume = True
+                    st.switch_page("demo_streamlit.py")
 def main():
     st.set_page_config(page_title="Log in", layout="centered")
 

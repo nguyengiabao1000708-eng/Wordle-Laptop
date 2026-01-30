@@ -23,6 +23,8 @@ def init_states():
         st.session_state.username = ""
     if "has_saved" not in st.session_state:
         st.session_state.has_saved = False
+    if "has_resume" not in st.session_state:
+        st.session_state.has_resume = False
 
 def change_mode():
     """Cho phép người dùng thay đổi chế độ chơi và độ khó."""
@@ -136,7 +138,7 @@ def math_logic(guess):
     elif eval(a) != int(b):
         st.warning("2 vế PHẢI bằng nhau")
 
-def submit_char(length_limit, wordle):
+def submit_char(length_limit, wordle, um):
     """Xử lý khi người dùng nhấn nút ENTER để gửi đoán."""
     guess = st.session_state.cur_guess
     if len(guess) < len(wordle.secret):
@@ -149,6 +151,8 @@ def submit_char(length_limit, wordle):
         st.warning("Từ không tồn tại")
     else:
         wordle.attempts.append(guess)
+        if st.session_state.username:
+            um.update_resume(st.session_state.mode, st.session_state.diff, wordle.secret, wordle.attempts, st.session_state.username)
         wordle.redo_stack.clear()
         if guess == wordle.secret:
             st.session_state.game_over = True
@@ -167,7 +171,7 @@ def get_disabled_chars(wordle):
                 disabled_chars.append(char)
     return set(disabled_chars)
 
-def render_keyboard(length_limit, wordle):
+def render_keyboard(length_limit, wordle, um):
     """Hiển thị bàn phím ảo và xử lý các nút bấm."""
     if st.session_state.mode != "math":
         if  st.session_state.mode == "vietnamese":
@@ -204,7 +208,7 @@ def render_keyboard(length_limit, wordle):
     
 
 
-        row3[0].button("ENTER", on_click = submit_char, args = (length_limit, wordle),
+        row3[0].button("ENTER", on_click = submit_char, args = (length_limit, wordle, um),
                         use_container_width = True)
         row3[-1].button("⌫", on_click= del_char,
                         use_container_width=True)
@@ -231,7 +235,7 @@ def render_keyboard(length_limit, wordle):
 
         row2 = st.columns([1] + [1] + [0.8]*len(keys[1]) + [1] + [1])
 
-        row2[0].button("ENTER", on_click = submit_char, args = (length_limit, wordle),
+        row2[0].button("ENTER", on_click = submit_char, args = (length_limit, wordle, um),
                         use_container_width = True)
         row2[-1].button("⌫", on_click= del_char,
                         use_container_width=True)   
@@ -335,11 +339,9 @@ def already_guessed(guess, wordle):
 def main():
     st.set_page_config(page_title="Wordle HCMUS", layout="centered", initial_sidebar_state= "collapsed")
     init_states()
-
-    wordle = st.session_state.wordle
-    target = wordle.secret
     user_manager = UserManager()
     user_manager.load_data()
+
 
     username = st.session_state.username
     user = user_manager.get_player(username)
@@ -348,8 +350,35 @@ def main():
     else:
         st.title("Welcome to Wordle!")
 
+
+
+
+
+
+
+    if st.session_state.has_resume == True:
+        mode, diff, target, attempts = user_manager.get_resume(username)
+        st.session_state.wordle = Wordle(target)
+        wordle = st.session_state.wordle
+        wordle.attempts +=  attempts
+        st.session_state.mode = mode
+        st.session_state.diff = diff
+        st.session_state.has_resume = False
+        user_manager.clear_resume(username)
+    else:
+        wordle = st.session_state.wordle
+        target = wordle.secret
+
+
+
+
+
+
     navigation()
     render_wordle_board(wordle.attempts, wordle)
+
+
+
     if user:
         can_play = user_manager.check_can_play(username)
         if can_play == False and st.session_state.state == "basic":
@@ -357,9 +386,8 @@ def main():
             st.warning("Nếu muốn tiếp tục chơi hãy mua gói premium để mở khoá full")
         else:
             if st.session_state.game_over == False:
-                render_keyboard(len(target), wordle)
+                render_keyboard(len(target), wordle, user_manager)
             else:
-
                 if not st.session_state.has_saved :
                     if st.session_state.is_win:
                             user_manager.update_data(username, True)
@@ -375,6 +403,7 @@ def main():
                     st.success(f"Chúc mừng! Bạn đã đoán đúng từ '{target}'")
                 else:
                     st.error(f"Bạn đã thua! Từ đúng là '{target}'")
+                user_manager.clear_resume(username)
 
                 user_manager.mark_played_today(username)
             
@@ -387,7 +416,7 @@ def main():
                     st.rerun()
     else: 
         if st.session_state.game_over == False:
-            render_keyboard(len(target), wordle)
+            render_keyboard(len(target), wordle, user_manager)
         else:
             if st.session_state.is_win:
                 st.success(f"Chúc mừng! Bạn đã đoán đúng từ '{target}'")
