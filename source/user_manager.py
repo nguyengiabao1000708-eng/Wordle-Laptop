@@ -9,6 +9,9 @@ class UserNode:
         self.total_wins = 0
         self.cur_streak = 0
         self.best_streak = 0
+        self.win_easy = 0
+        self.win_normal = 0
+        self.win_hard = 0
         self.last_played = "1970-01-01"
         self.resume_mode = 0
         self.resume_diff = 0
@@ -25,12 +28,12 @@ class UserManager:
         self.last_played_size = 10
         self.int_size = 4
         self.resume = 80
-        self.record_size = 130 # 10 + 10 + 4 + 4 + 4 + 4 + 10 + 80 (1 + 1 + 13 + (13 * 5 + 4 ))
+        self.record_size = 142 # 10 + 10 + 4*7 + 10 + 80 (1 + 1 + 13 + (13 * 5 +4))
 
     def save_data(self):
         """Lưu dữ liệu người dùng vào file nhị phân."""
-        if self.is_empty():
-            return
+        # if self.is_empty():
+        #     return
             
         with open(self.file_path, "wb") as f:
             current = self.head
@@ -47,21 +50,24 @@ class UserManager:
                 buffer[24:28] = current.total_wins.to_bytes(self.int_size, 'little')
                 buffer[28:32] = current.cur_streak.to_bytes(self.int_size, 'little')
                 buffer[32:36] = current.best_streak.to_bytes(self.int_size, 'little')
+                buffer[36:40] = current.win_easy.to_bytes(self.int_size, 'little')
+                buffer[40:44] = current.win_normal.to_bytes(self.int_size, 'little')
+                buffer[44:48] = current.win_hard.to_bytes(self.int_size, 'little')
                 
                 last_date_str = str(current.last_played)
                 date_bytes = last_date_str.encode('utf-8')[:10] 
-                buffer[36:36+len(date_bytes)] = date_bytes
-
+                buffer[48:48+len(date_bytes)] = date_bytes
+ 
                 # Giả sử offset bắt đầu từ 46
-                buffer[46:47] = int(current.resume_mode).to_bytes(1, 'little')
-                buffer[47:48] = int(current.resume_diff).to_bytes(1, 'little')
+                buffer[58:59] = int(current.resume_mode).to_bytes(1, 'little')
+                buffer[59:60] = int(current.resume_diff).to_bytes(1, 'little')
 
                 # Ghi Target và Attempts (vẫn là chuỗi)
                 target_bytes = current.resume_target.encode('utf-8')[:13]
-                buffer[48 : 48 + len(target_bytes)] = target_bytes
+                buffer[60 : 60 + len(target_bytes)] = target_bytes
 
                 attempts_bytes = current.resume_attempts.encode('utf-8')[:69]
-                buffer[61 : 61 + len(attempts_bytes)] = attempts_bytes
+                buffer[73 : 73 + len(attempts_bytes)] = attempts_bytes
 
                 f.write(buffer)
                 current = current.next
@@ -87,14 +93,16 @@ class UserManager:
                 user_node.total_wins   = int.from_bytes(data[24:28], 'little')
                 user_node.cur_streak   = int.from_bytes(data[28:32], 'little')
                 user_node.best_streak  = int.from_bytes(data[32:36], 'little')
+                user_node.win_easy     = int.from_bytes(data[36:40], 'little')
+                user_node.win_normal   = int.from_bytes(data[40:44], 'little')
+                user_node.win_hard     = int.from_bytes(data[44:48], 'little')
 
-                user_node.last_played  = data[36:46].decode('utf-8', errors='ignore').rstrip('\x00')
+                user_node.last_played  = data[48:58].decode('utf-8', errors='ignore').rstrip('\x00')
+                user_node.resume_mode     = int.from_bytes(data[58:59], 'little')
+                user_node.resume_diff     = int.from_bytes(data[59:60], 'little')
 
-                user_node.resume_mode     = int.from_bytes(data[46:47], 'little')
-                user_node.resume_diff     = int.from_bytes(data[47:48], 'little')
-
-                user_node.resume_target   = data[48:61].decode('utf-8', errors='ignore').rstrip('\x00')
-                user_node.resume_attempts = data[61:130].decode('utf-8', errors='ignore').rstrip('\x00')
+                user_node.resume_target   = data[60:73].decode('utf-8', errors='ignore').rstrip('\x00')
+                user_node.resume_attempts = data[73:142].decode('utf-8', errors='ignore').rstrip('\x00')
     # def load_data(self):
     #"""Tải dữ liệu người dùng từ file văn bản."""
     #     with open(self.file_path, "r") as f:
@@ -197,12 +205,18 @@ class UserManager:
         """Kiểm tra xem danh sách người dùng có rỗng hay không."""
         return self.head == None
     
-    def update_data(self, username, is_win):
+    def update_data(self, username, is_win, which_diff):
         """Cập nhật dữ liệu người dùng sau mỗi trận chơi."""
         user = self.get_player(username)
         user.games_played +=1
         if is_win == True:
             user.total_wins +=1
+            if which_diff == "easy":
+                user.win_easy += 1
+            elif which_diff == "normal":
+                user.win_normal += 1
+            else:
+                user.win_hard += 1
             user.cur_streak +=1
             if user.cur_streak > user.best_streak:
                 user.best_streak = user.cur_streak
@@ -238,6 +252,18 @@ class UserManager:
                 return itr
             itr = itr.next
         return False
+    
+    def delete_player(self, username):
+        """Xóa người dùng khỏi danh sách dựa trên tên đăng nhập."""
+        cur = self.head
+        if self.head.username == username:
+            self.head = self.head.next
+            return
+        while cur.next:
+            if cur.next.username == username:
+                cur.next = cur.next.next
+                return
+            cur = cur.next
 
     def player_statistics(self,username, password):
         """Lấy thống kê người chơi dưới dạng chuỗi."""
@@ -285,6 +311,15 @@ class UserManager:
             for i in top_5:
                 list.append((i.username, i.total_wins))
             return list
+    
+    def bar_chart_diff(self, username):
+        """Lấy dữ liệu để vẽ biểu đồ cột cho số trận thắng theo từng độ khó."""
+        user = self.get_player(username)
+        return {
+            "Easy": user.win_easy,
+            "Normal": user.win_normal,
+            "Hard": user.win_hard
+        }
 
 
             

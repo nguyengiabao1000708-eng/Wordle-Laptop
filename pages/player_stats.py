@@ -37,10 +37,17 @@ user_manager.get_player(username)
 user = user_manager.get_player(username)
 
 if user:
-    st.write(f"Username: {username}")
-    st.write("Số trận đã chơi:", user.games_played)
-    st.write("Tổng số trận thắng:", user.total_wins)
-    st.write("Chuỗi thắng hiện tại:", user.cur_streak)
-    st.write("Chuỗi thắng dài nhất:", user.best_streak)
+    st.markdown(f"## Người chơi: **{username}**")
+
+    c1, c2, c3 , c4 = st.columns(4)
+    with c1:
+        st.metric("Số trận đã chơi:", user.games_played)
+    with c2:
+        st.metric("Tổng số trận thắng:", user.total_wins)
+    with c3:
+        st.metric("Chuỗi thắng hiện tại:", user.cur_streak)
+    with c4:
+        st.metric("Chuỗi thắng dài nhất:", user.best_streak)
+    st.bar_chart(user_manager.bar_chart_diff(username), use_container_width=True)
 else:
     st.write("Vui lòng đăng nhập để xem thông số người chơi.")

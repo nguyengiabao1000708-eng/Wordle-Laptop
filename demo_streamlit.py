@@ -390,9 +390,9 @@ def main():
             else:
                 if not st.session_state.has_saved :
                     if st.session_state.is_win:
-                            user_manager.update_data(username, True)
+                            user_manager.update_data(username, True, st.session_state.diff)
                     else:
-                            user_manager.update_data(username, False)
+                            user_manager.update_data(username, False, st.session_state.diff)
 
                     if username:      
                         user_manager.save_data()
