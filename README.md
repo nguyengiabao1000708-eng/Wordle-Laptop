@@ -4,4 +4,7 @@
     - https://github.com/dwyl/english-words ( data eng)
     - https://github.com/mahsu/IndexingExercise/blob/master/5000-words.txt ( data eng)
 - tutorial support references:
-    - https://www.youtube.com/watch?v=SyWeex-S6d0&t=2251s
+    - https://www.youtube.com/watch?v=SyWeex-S6d0&t=2251s (Basic wordle)
+    - [Gemini Pro](https://gemini.google.com/app?hl=vi) 
+    - https://30days.streamlit.app/ (Streamlit)
+    - https://www.youtube.com/watch?v=VXtjG_GzO7Q&t=3465s (Pandas)
