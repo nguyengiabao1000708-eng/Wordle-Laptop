@@ -259,7 +259,7 @@ def navigation_subpages():
     col1, col2, col3, col4 = st.columns([1.5, 2, 2, 1.2])
     with col1:
         if st.button("Trang chủ", icon= "🏠", use_container_width=True):
-            st.switch_page("demo_streamlit.py")
+            st.switch_page("Home_page.py")
     with col2:
         if st.button("Thông số người chơi", icon= "📈", use_container_width=True):
             st.switch_page("pages/player_stats.py")

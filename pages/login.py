@@ -56,7 +56,7 @@ def log_in(um):
             if st.button("Sign Up"):
                 st.session_state.auth_mode = "signup"
                 st.rerun()
-                
+
 def change_password(um):
     """Hiển thị biểu mẫu thay đổi mật khẩu và xử lý thay đổi mật khẩu."""
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -98,7 +98,7 @@ def after_log_in(um):
             cola, colb = st.columns([1, 1])
             with cola:
                 if st.button("Start Game"):
-                        st.switch_page("demo_streamlit.py")
+                        st.switch_page("Home_page.py")
                 if st.button("Change Password"):
                     st.session_state.auth_mode = "change_password"
                     st.rerun()
@@ -113,7 +113,7 @@ def after_log_in(um):
                 st.write("Bạn đang chơi 1 game dang dở. Muốn tiếp tục không?")
                 if st.button("Resume Game"):
                     st.session_state.has_resume = True
-                    st.switch_page("demo_streamlit.py")
+                    st.switch_page("Home_page.py")
 
 def delete_account(um):
     """Xử lý xóa tài khoản người dùng."""
