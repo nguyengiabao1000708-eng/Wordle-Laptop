@@ -1,5 +1,6 @@
 import streamlit as st
 from source import UserManager
+from source import ui
 
 def sign_up(um):
     """Hiển thị biểu mẫu đăng ký và xử lý đăng ký người dùng mới."""
@@ -55,6 +56,7 @@ def log_in(um):
             if st.button("Sign Up"):
                 st.session_state.auth_mode = "signup"
                 st.rerun()
+                
 def change_password(um):
     """Hiển thị biểu mẫu thay đổi mật khẩu và xử lý thay đổi mật khẩu."""
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -84,6 +86,7 @@ def change_password(um):
         if st.button("Back to Profile"):
             st.session_state.auth_mode = "after_log_in"
             st.rerun()
+
 def after_log_in(um):
     """Xử lý sau khi người dùng đăng nhập thành công."""
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -123,6 +126,7 @@ def delete_account(um):
 
 def main():
     st.set_page_config(page_title="Log in", layout="centered")
+    ui.navigation_subpages()
 
     if "auth_mode" not in st.session_state:
         st.session_state.auth_mode = "Log in"

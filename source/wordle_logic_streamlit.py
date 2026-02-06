@@ -1,4 +1,3 @@
-# from letter_state import Letter_state
 from collections import Counter
 import streamlit as st 
 
@@ -22,10 +21,7 @@ class Wordle:
         return left
     
     def get_guess_statuses(self, guess):
-        """
-        Trả về danh sách các class CSS cho từng chữ cái trong từ đoán.
-        Ví dụ: ['tile-correct', 'tile-absent', 'tile-present', ...]
-        """
+        """Trả về danh sách các class CSS cho từng chữ cái trong từ đoán."""
         guess = guess.upper()
 
         result = ["tile-absent"] * self.WORDS_LENGTH
@@ -47,7 +43,7 @@ class Wordle:
         return result
     
     def is_solved(self):
-        """Kiểm tra xem trò chơi đã được giải quyết hay chưa."""
+        """Kiểm tra xem đã thắng chưa."""
         if self.attempts[-1] == self.secret:
             return True
         else:
@@ -65,6 +61,7 @@ class Wordle:
         if not self.attempts:
             st.warning("Nothing to undo")
             return
+        
         undo_words = self.attempts.pop()
         self.redo_stack.append(undo_words)
         return
@@ -74,10 +71,19 @@ class Wordle:
         if not self.redo_stack:
             st.warning("Nothing to redo")
             return
+        
         redo_words = self.redo_stack.pop()
         self.attempts.append(redo_words)
-        pass
 
+    def check_valid_words(self, word, file_path):
+        """Kiểm tra xem từ có tồn tại trong file dữ liệu từ hay không."""
+        with open(file_path, "r") as file:
+            word_list = {line.strip().upper() for line in file}
+        return word in word_list
+
+    def already_guessed(self, guess):
+        """Kiểm tra xem từ đã được đoán trước đó hay chưa."""
+        return guess in self.attempts
     
 
     

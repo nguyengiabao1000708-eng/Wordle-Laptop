@@ -30,10 +30,10 @@ class UserManager:
         self.resume = 80
         self.record_size = 142 # 10 + 10 + 4*7 + 10 + 80 (1 + 1 + 13 + (13 * 5 +4))
 
+
+# HÀM TẢI VÀ LƯU DỮ LIỆU NGƯỜI CHƠI (NHỊ PHÂN)
     def save_data(self):
-        """Lưu dữ liệu người dùng vào file nhị phân."""
-        # if self.is_empty():
-        #     return
+        """Lưu dữ liệu người chơi vào file nhị phân."""
             
         with open(self.file_path, "wb") as f:
             current = self.head
@@ -58,11 +58,9 @@ class UserManager:
                 date_bytes = last_date_str.encode('utf-8')[:10] 
                 buffer[48:48+len(date_bytes)] = date_bytes
  
-                # Giả sử offset bắt đầu từ 46
                 buffer[58:59] = int(current.resume_mode).to_bytes(1, 'little')
                 buffer[59:60] = int(current.resume_diff).to_bytes(1, 'little')
 
-                # Ghi Target và Attempts (vẫn là chuỗi)
                 target_bytes = current.resume_target.encode('utf-8')[:13]
                 buffer[60 : 60 + len(target_bytes)] = target_bytes
 
@@ -73,7 +71,7 @@ class UserManager:
                 current = current.next
 
     def load_data(self):
-        """Tải dữ liệu người dùng từ file nhị phân."""
+        """Tải dữ liệu người chơi từ file nhị phân."""
         if not os.path.exists(self.file_path):
             return
 
@@ -103,38 +101,18 @@ class UserManager:
 
                 user_node.resume_target   = data[60:73].decode('utf-8', errors='ignore').rstrip('\x00')
                 user_node.resume_attempts = data[73:142].decode('utf-8', errors='ignore').rstrip('\x00')
-    # def load_data(self):
-    #"""Tải dữ liệu người dùng từ file văn bản."""
-    #     with open(self.file_path, "r") as f:
-    #         for i in f.readlines():
-    #             user = i.strip().split("|")
-    #             user_node = self.insert_at_beginning(user[0])
-    #             user_node.games_played = int(user[1])
-    #             user_node.total_wins = int(user[2])
-    #             user_node.cur_streak = int(user[3])
-    #             user_node.best_streak = int(user[4])
 
-    # def save_data (self):
-    # """Lưu dữ liệu người dùng vào file văn bản."""
-    #     if self.is_empty():
-    #         print("Nothing to save")
-    #         return
-    #     with open(self.file_path, "w") as f:
-    #         current = self.head
-    #         while current:
-    #             line =f"{current.username}|{current.games_played}|{current.total_wins}|{current.cur_streak}|{current.best_streak}\n"
-    #             f.write(line)
-    #             current = current.next]
 
+# HÀM RESUME NGƯỜI CHƠI
     def have_resume(self, username):
-        """Kiểm tra người dùng có trạng thái tạm dừng hay không."""
+        """Kiểm tra người chơi có resume hay không."""
         user = self.get_player(username)
         if len(user.resume_attempts) == 0 or len(user.resume_attempts) == 6:
             return False
         return True
 
     def get_resume(self, username):
-        """Lấy trạng thái tạm dừng của người dùng."""
+        """Lấy resume của người chơi."""
         user = self.get_player(username)
         if user.resume_mode == 1:
             mode = "easy"
@@ -153,7 +131,7 @@ class UserManager:
         return mode, diff, target, attempts
 
     def update_resume (self, mode, diff, target, attempts, username):
-        """Cập nhật trạng thái tạm dừng của người dùng."""
+        """Cập nhật resume của người chơi."""
         user = self.get_player(username)
 
         if mode == "easy":
@@ -174,6 +152,7 @@ class UserManager:
         self.save_data()
 
     def clear_resume(self, username):
+        """Xóa resume của người chơi."""
         user = self.get_player(username)
         user.resume_mode = 0
         user.resume_diff = 0
@@ -181,32 +160,75 @@ class UserManager:
         user.resume_attempts = ""
         self.save_data()
 
+
+# HÀM LIÊN QUAN ĐẾN KIỂM SOÁT LƯỢT CHƠI TRONG NGÀY
     def check_can_play(self, username):
-        """Kiểm tra xem người dùng có thể chơi trong ngày hôm nay hay không."""
+        """Kiểm tra xem người chơi có thể chơi trong ngày hôm nay hay không."""
         user = self.get_player(username)
         if user.last_played == str(date.today()):
             return False
         return True
 
     def mark_played_today(self, username):
-        """Đánh dấu người dùng đã chơi trong ngày hôm nay."""
+        """Đánh dấu người chơi đã chơi trong ngày hôm nay."""
         user = self.get_player(username)
         user.last_played = str(date.today())
         self.save_data()
 
+
+# HÀM THAO TÁC LINKEDLIST NGƯỜI CHƠI
+    def is_empty(self):
+        """Kiểm tra xem danh sách người chơi có rỗng hay không."""
+        return self.head == None
+
     def insert_at_beginning(self, username, password):
-        """Chèn một người dùng mới vào đầu danh sách liên kết."""
+        """Chèn một người chơi mới vào đầu danh sách liên kết."""
         new_node = UserNode(username, password)
         new_node.next = self.head
         self.head = new_node
         return new_node
 
-    def is_empty(self):
-        """Kiểm tra xem danh sách người dùng có rỗng hay không."""
-        return self.head == None
+    def get_player(self, username):
+        """Lấy thông tin người chơi dựa trên tên đăng nhập."""
+        # if self.is_empty():
+        #     user = self.create_new_player(username, password)
+        # elif self.player_is_exist(username) == False:
+        #     user = self.create_new_player(username, password)
+        # else:
+        user = self.player_is_exist(username)
+        return user
+
+    def create_new_player(self, username, password):
+        """Tạo một người chơi mới và thêm vào danh sách."""
+        new_user = self.insert_at_beginning(username, password)
+        return new_user
+
+    def player_is_exist(self,username):
+        """Kiểm tra xem người chơi có tồn tại trong danh sách hay không."""
+        if self.is_empty():
+            print("not exist")
+            return
+        itr = self.head
+        while itr:
+            if itr.username == username:
+                return itr
+            itr = itr.next
+        return False
+    
+    def delete_player(self, username):
+        """Xóa người chơi khỏi danh sách dựa trên tên đăng nhập."""
+        cur = self.head
+        if self.head.username == username:
+            self.head = self.head.next
+            return
+        while cur.next:
+            if cur.next.username == username:
+                cur.next = cur.next.next
+                return
+            cur = cur.next    
     
     def update_data(self, username, is_win, which_diff):
-        """Cập nhật dữ liệu người dùng sau mỗi trận chơi."""
+        """Cập nhật dữ liệu người chơi sau mỗi trận chơi."""
         user = self.get_player(username)
         user.games_played +=1
         if is_win == True:
@@ -224,53 +246,7 @@ class UserManager:
             user.cur_streak = 0
 
 
-    def get_player(self, username):
-        """Lấy thông tin người dùng dựa trên tên đăng nhập."""
-        # if self.is_empty():
-        #     user = self.create_new_player(username, password)
-        # elif self.player_is_exist(username) == False:
-        #     user = self.create_new_player(username, password)
-        # else:
-        user = self.player_is_exist(username)
-        return user
-
-
-    def create_new_player(self, username, password):
-        """Tạo một người dùng mới và thêm vào danh sách."""
-        new_user = self.insert_at_beginning(username, password)
-        return new_user
-
-
-    def player_is_exist(self,username):
-        """Kiểm tra xem người dùng có tồn tại trong danh sách hay không."""
-        if self.is_empty():
-            print("not exist")
-            return
-        itr = self.head
-        while itr:
-            if itr.username == username.strip():
-                return itr
-            itr = itr.next
-        return False
-    
-    def delete_player(self, username):
-        """Xóa người dùng khỏi danh sách dựa trên tên đăng nhập."""
-        cur = self.head
-        if self.head.username == username:
-            self.head = self.head.next
-            return
-        while cur.next:
-            if cur.next.username == username:
-                cur.next = cur.next.next
-                return
-            cur = cur.next
-
-    def player_statistics(self,username, password):
-        """Lấy thống kê người chơi dưới dạng chuỗi."""
-        user = self.get_player(username, password)
-        return(f"{user.games_played}{user.total_wins}{user.cur_streak}{user.best_streak}")
-
-
+# HÀM LIÊN QUAN ĐẾN XẾP HẠNG NGƯỜI CHƠI
     def ranking_total_games(self):
             """Lấy bảng xếp hạng người chơi dựa trên số trận đã chơi."""
             if self.is_empty():
@@ -311,7 +287,9 @@ class UserManager:
             for i in top_5:
                 list.append((i.username, i.total_wins))
             return list
-    
+
+
+# HÀM BIỂU ĐỒ CỘT SỐ TRẬN THẮNG THEO ĐỘ KHÓ
     def bar_chart_diff(self, username):
         """Lấy dữ liệu để vẽ biểu đồ cột cho số trận thắng theo từng độ khó."""
         user = self.get_player(username)
