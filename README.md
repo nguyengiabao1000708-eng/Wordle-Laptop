@@ -28,13 +28,18 @@
     - Có thể xóa account nếu muốn reset
 
 - Bảng tự đánh giá:
-| Tiêu chí | Chức năng | Mức độ hoàn thiện | Ghi chú kỹ thuật |
-| :--- | :--- | :---: | :--- |
-| **Logic Game** | Kiểm tra từ hợp lệ, logic màu sắc | 100% | Sử dụng `Collections.Counter` để xử lý chính xác tần suất ký tự (tránh lỗi hiển thị vàng/xám khi từ có ký tự trùng). |
-| | Math Mode Logic | 100% | Validate biểu thức toán học (syntax, semantic check) nghiêm ngặt. |
-| **Cấu trúc dữ liệu** | Linked List (User Management) | 100% | Tự cài đặt Node, Insert, Delete, Search. Không dùng thư viện ngoài cho cấu trúc này. |
-| | Binary File Processing | 100% | Đọc/Ghi theo block cố định, xử lý `bytearray`, `decode/encode` utf-8 an toàn. |
-| | Stack (Undo/Redo) | 100% | Cài đặt ngăn xếp chuẩn cho thao tác hoàn tác. |
-| **Thuật toán** | Information Theory (AI Hint) | 100% | Tính toán Entropy chính xác. Tuy nhiên, tốc độ có thể giảm nhẹ với không gian mẫu lớn (>5000 từ) do độ phức tạp tính toán cao. |
-| **Trải nghiệm** | Resume/Save Game | 100% | Lưu trạng thái game vào cấu trúc user binary, khôi phục chính xác 100%. |
-| | Giao diện (UI) | 95% | Streamlit UI thân thiện, có Responsive cơ bản. Hạn chế nhỏ: Page sẽ reload (rerun) mỗi khi tương tác do đặc thù của Framework Streamlit. |
+### 📋 Bảng Tính Năng Dự Án (Feature List)
+
+| STT | Nhóm Chức Năng | Tên Chức Năng | Mô Tả Chi Tiết & Kỹ Thuật Áp Dụng | Hoàn Thiện |
+| :---: | :--- | :--- | :--- | :---: |
+| 1 | **Core Game Logic** | Cơ chế chơi (Gameplay) | - Xử lý nhập liệu, kiểm tra độ dài từ.<br>- So khớp từ đoán/từ khóa: 🟩 Xanh (Đúng), 🟨 Vàng (Sai vị trí), ⬜ Xám (Không có).<br>- **Kỹ thuật:** Sử dụng `Counter` để xử lý tần suất ký tự chính xác. | 100% |
+| 2 | | Đa dạng chế độ (Modes) | - Hỗ trợ 3 chế độ: Tiếng Anh, Tiếng Việt, Toán học (Math).<br>- 3 độ khó: Easy, Normal, Hard (thay đổi độ dài từ/biểu thức). | 100% |
+| 3 | | Math Mode Logic | - Kiểm tra tính hợp lệ của biểu thức (1 dấu `=`, 2 vế bằng nhau, kết quả nguyên).<br>- Bàn phím số và toán tử riêng biệt. | 100% |
+| 4 | **Data Structures** | Quản lý người dùng<br>(User Management) | - Đăng ký, Đăng nhập, Đổi mật khẩu, Xóa tài khoản.<br>- **Kỹ thuật:** Tự cài đặt **Linked List** (Danh sách liên kết đơn) để quản lý danh sách trong RAM. | 100% |
+| 5 | | Lưu trữ dữ liệu<br>(File I/O) | - Lưu/Tải dữ liệu người chơi xuống ổ cứng.<br>- **Kỹ thuật:** Xử lý **Binary File**, tuần tự hóa (`serialize`) object thành `byte array` với cấu trúc cố định (`record_size = 142 bytes`). | 100% |
+| 6 | **Algorithms** | AI Gợi ý<br>(Smart Hint) | - Gợi ý từ tối ưu nhất cho người chơi.<br>- **Kỹ thuật:** Áp dụng **Information Theory**, tính toán **Shannon Entropy** để tìm từ loại bỏ được nhiều ứng viên sai nhất. | 100% |
+| 7 | | Undo / Redo | - Cho phép quay lại hoặc làm lại thao tác nhập liệu/đoán từ.<br>- **Kỹ thuật:** Sử dụng cấu trúc **Stack** (Ngăn xếp) để quản lý lịch sử. | 100% |
+| 8 | **User Experience** | Lưu game<br>(Resume Game) | - Tự động lưu trạng thái (từ đang đoán, lượt còn lại) khi thoát.<br>- Khôi phục chính xác khi đăng nhập lại. | 100% |
+| 9 | | Phân quyền<br>(Basic/Premium) | - **Basic:** Giới hạn chơi 1 lần/ngày (Daily Challenge) dựa trên `date.today()`.<br>- **Premium:** Chơi không giới hạn (Random Word). | 100% |
+| 10 | **Statistics** | Thống kê & Xếp hạng | - Xem lịch sử đấu: Số trận, Thắng, Chuỗi thắng (Streak), Biểu đồ.<br>- **Leaderboard:** Top 5 chăm chỉ & Top 5 cao thủ. | 100% |
+| 11 | **Interface** | Giao diện (UI) | - Giao diện **Streamlit** thân thiện, bố cục chia cột hợp lý.<br>- Hỗ trợ Dark/Light mode, Responsive cơ bản.<br>- CSS tùy chỉnh cho ô chữ và bàn phím. | 95% |
