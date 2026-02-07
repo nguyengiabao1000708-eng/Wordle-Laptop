@@ -16,6 +16,7 @@
     - cd vào dir wordle và nhập lệnh streamlit run Home_page.py là có thể chơi
     - Nếu chơi mà không tạo tài khoản thì sẽ không lưu thông tin -> Nhớ tạo tài khoản để có trải nghiệm tốt nhất
     - Người mới vào sẽ được mặc định trạng thái basic (có thể tùy chỉnh lên premium bằng Settings(sau này có thể code thêm lên premium phải nạp tiền))
+    - Có thể sẽ còn 1 số lỗi có thể xuất hiện trong quá trình chơi vì chưa được test đủ nhiều 
 
 - Gameplay flow:
     - Vào game đăng nhập
