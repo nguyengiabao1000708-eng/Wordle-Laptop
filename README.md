@@ -42,4 +42,4 @@
 | 8 | **User Experience** | Lưu game<br>(Resume Game) | - Tự động lưu trạng thái (từ đang đoán, lượt còn lại) khi thoát.<br>- Khôi phục chính xác khi đăng nhập lại. | 90% |
 | 9 | | Phân quyền<br>(Basic/Premium) | - **Basic:** Giới hạn chơi 1 lần/ngày (Daily Challenge) dựa trên `date.today()`.<br>- **Premium:** Chơi không giới hạn (Random Word). | 90% |
 | 10 | **Statistics** | Thống kê & Xếp hạng | - Xem lịch sử đấu: Số trận, Thắng, Chuỗi thắng (Streak), Biểu đồ.<br>- **Leaderboard:** Top 5 chăm chỉ & Top 5 cao thủ.<br>- Có thể nâng cấp thêm sau này | 90% |
-| 11 | **Interface** | Giao diện (UI) | - Giao diện **Streamlit** thân thiện, bố cục chia cột hợp lý.<br>- Hỗ trợ Dark/Light mode, Responsive cơ bản.<br>- CSS tùy chỉnh cho ô chữ và bàn phím.- Có thể nâng cấp thêm sau này | 90% |
+| 11 | **Interface** | Giao diện (UI) | - Giao diện **Streamlit** thân thiện, bố cục chia cột hợp lý.<br>- Hỗ trợ Dark/Light mode, Responsive cơ bản.<br>- CSS tùy chỉnh cho ô chữ và bàn phím.<br>- Có thể nâng cấp thêm sau này | 90% |
