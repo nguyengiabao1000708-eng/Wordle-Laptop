@@ -18,6 +18,7 @@
     - Người mới vào sẽ được mặc định trạng thái basic (có thể tùy chỉnh lên premium bằng Settings(sau này có thể code thêm lên premium phải nạp tiền))
     - Có thể sẽ còn 1 số lỗi có thể xuất hiện trong quá trình chơi vì chưa được test đủ nhiều
     - Có 1 số tính năng chỉ nên áp dụng ở premium và khi ở basic sẽ hơi trục trặc nhẹ hoặc ngược lại
+    - Vid hướng dẫn: https://youtu.be/JiqYQ7pFNBo
 
 - Gameplay flow:
     - Vào game đăng nhập
