@@ -6,9 +6,21 @@ import random
 
 # HÀM KHỞI TẠO TRẠNG THÁI
 def init_states():
-    """Khởi tạo các biến trạng thái cần thiết trong session_state."""
+    """Khởi tạo và thiết lập các giá trị mặc định cho Session State.
+
+    Hàm này đảm bảo các biến trạng thái quan trọng (state, wordle object, 
+    mode, diff, user info...) luôn tồn tại trước khi render giao diện.
+    Đồng thời, nó cũng tải danh sách từ (all_words, candidates) dựa trên 
+    chế độ chơi hiện tại (Math hoặc Word).
+
+    Args:
+        None
+
+    Returns:
+        None: Hàm cập nhật trực tiếp vào st.session_state.
+    """
     if "state" not in st.session_state:
-        st.session_state.state = "premium"
+        st.session_state.state = "basic"
     if "wordle" not in st.session_state:
         st.session_state.wordle = Wordle(get_random_word("source/data/words_data/valid_word_with_length_n.txt"))
         st.session_state.game_over = False
@@ -39,6 +51,17 @@ def init_states():
 # HÀM ĐỌC CSS VÀ HÀM CHỌN TỪ
 
 def get_all_words(file_path):
+    """Đọc và tải toàn bộ danh sách từ từ file văn bản.
+
+    Hàm mở file, đọc từng dòng, loại bỏ ký tự xuống dòng và khoảng trắng thừa,
+    sau đó trả về một danh sách chứa các từ sạch.
+
+    Args:
+        file_path (str): Đường dẫn tương đối hoặc tuyệt đối đến file dữ liệu (.txt).
+
+    Returns:
+        list[str]: Danh sách các từ đã được xử lý (strip).
+    """
     with open(file_path, "r") as f:
         words = []
         for i in f.readlines():
@@ -46,14 +69,37 @@ def get_all_words(file_path):
     return words
 
 def local_css(file_name):
-    """Đọc file CSS và áp dụng các kiểu dáng cho ứng dụng Streamlit."""
+    """Đọc file CSS và nhúng style vào ứng dụng Streamlit.
+
+    Sử dụng st.markdown với unsafe_allow_html=True để áp dụng các quy tắc CSS 
+    tùy chỉnh (giao diện, màu sắc ô chữ, bàn phím) cho trang web.
+
+    Args:
+        file_name (str): Đường dẫn đến file .css cần tải.
+
+    Returns:
+        None: CSS được inject trực tiếp vào DOM của trang.
+    """
     with open (file_name) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html = True)
 
 local_css("source/static/style.css")
 
 def get_random_word(file_path):
-    """Lấy một từ ngẫu nhiên từ file dữ liệu từ."""          
+    """Chọn một từ bí mật (Secret Word) từ file dữ liệu.
+
+    Hàm có 2 cơ chế hoạt động dựa trên trạng thái tài khoản (st.session_state.state):
+    1. Basic: Sử dụng ngày hiện tại làm seed để chọn từ (Mọi người chơi Basic 
+       đều có từ giống nhau trong ngày - Daily Challenge).
+    2. Premium: Chọn từ hoàn toàn ngẫu nhiên mỗi lần chơi.
+
+    Args:
+        file_path (str): Đường dẫn đến file chứa danh sách từ hợp lệ.
+
+    Returns:
+        str: Từ bí mật được chọn (đã chuyển sang in hoa).
+        None: Nếu file rỗng hoặc không đọc được.
+    """         
     with open(file_path, "r") as file:
         word_list = file.readlines()
     if not word_list: return None

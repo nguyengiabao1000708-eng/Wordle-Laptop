@@ -3,7 +3,18 @@ from source import UserManager
 from source import ui
 
 def sign_up(um):
-    """Hiển thị biểu mẫu đăng ký và xử lý đăng ký người dùng mới."""
+    """Hiển thị biểu mẫu đăng ký và xử lý logic tạo tài khoản mới.
+
+        Hàm này kiểm tra tính hợp lệ của username (không trùng lặp) và 
+        password (khớp với xác nhận), sau đó lưu người dùng mới vào database.
+
+        Args:
+            um (UserManager): Đối tượng quản lý người dùng, dùng để kiểm tra 
+                sự tồn tại của tài khoản và lưu dữ liệu mới.
+
+        Returns:
+            None: Hàm tương tác trực tiếp với giao diện Streamlit.
+    """
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         with st.container(border=True):
@@ -29,7 +40,18 @@ def sign_up(um):
                 st.rerun()
 
 def log_in(um):
-    """Hiển thị biểu mẫu đăng nhập và xử lý xác thực người dùng."""
+    """Hiển thị biểu mẫu đăng nhập và xác thực thông tin người dùng.
+
+        Hàm kiểm tra username và password. Nếu đúng, hệ thống sẽ khởi tạo 
+        các biến session_state cần thiết cho phiên chơi game.
+
+        Args:
+            um (UserManager): Đối tượng quản lý người dùng, dùng để truy xuất
+                thông tin tài khoản (password) từ database.
+
+        Returns:
+            None: Hàm cập nhật trực tiếp vào st.session_state và chuyển trang.
+    """
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         with st.container(border=True):
@@ -58,7 +80,18 @@ def log_in(um):
                 st.rerun()
 
 def change_password(um):
-    """Hiển thị biểu mẫu thay đổi mật khẩu và xử lý thay đổi mật khẩu."""
+    """Xử lý quy trình đổi mật khẩu cho người dùng hiện tại.
+
+        Yêu cầu người dùng nhập mật khẩu cũ để xác thực, sau đó kiểm tra 
+        tính hợp lệ của mật khẩu mới (không trùng mật khẩu cũ, khớp xác nhận).
+
+        Args:
+            um (UserManager): Đối tượng quản lý người dùng, dùng để cập nhật
+                và lưu mật khẩu mới vào file dữ liệu.
+
+        Returns:
+            None: Hiển thị thông báo thành công hoặc lỗi trên giao diện.
+    """
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         with st.container(border=True):
@@ -88,7 +121,18 @@ def change_password(um):
             st.rerun()
 
 def after_log_in(um):
-    """Xử lý sau khi người dùng đăng nhập thành công."""
+    """Hiển thị bảng điều khiển (Dashboard) chính sau khi đăng nhập thành công.
+
+        Cung cấp các tùy chọn điều hướng: Bắt đầu game, Đổi mật khẩu, 
+        Đăng xuất, Xóa tài khoản hoặc Tiếp tục game (Resume) nếu có.
+
+        Args:
+            um (UserManager): Đối tượng quản lý người dùng, dùng để kiểm tra
+                xem người chơi có ván game nào đang dang dở hay không.
+
+        Returns:
+            None: Điều hướng trang (switch_page) dựa trên nút bấm của người dùng.
+    """
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         with st.container(border=True):
@@ -116,8 +160,19 @@ def after_log_in(um):
                     st.switch_page("Home_page.py")
 
 def delete_account(um):
-    """Xử lý xóa tài khoản người dùng."""
-    username = st.session_state.get("username")
+    """Xóa vĩnh viễn tài khoản hiện tại khỏi hệ thống và đăng xuất.
+
+        Hàm này sẽ xóa node người dùng khỏi danh sách liên kết trong UserManager,
+        cập nhật lại file dữ liệu và xóa sạch session hiện tại.
+
+        Args:
+            um (UserManager): Đối tượng quản lý người dùng, chịu trách nhiệm
+                thực hiện thao tác xóa trong cấu trúc dữ liệu.
+
+        Returns:
+            None: Tự động rerender lại trang về trạng thái Đăng nhập.
+    """
+    username = st.session_state.get("username") 
     um.delete_player(username)
     um.save_data()
     st.session_state.auth_mode = "Log in"

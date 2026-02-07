@@ -33,7 +33,26 @@ class UserManager:
 
 # HÀM TẢI VÀ LƯU DỮ LIỆU NGƯỜI CHƠI (NHỊ PHÂN)
     def save_data(self):
-        """Lưu dữ liệu người chơi vào file nhị phân."""
+        """Tuần tự hóa (Serialize) danh sách liên kết và lưu vào file nhị phân.
+
+        Hàm duyệt qua từng node trong danh sách liên kết, chuyển đổi các thuộc tính
+        của người chơi thành byte array theo cấu trúc cố định (record_size) và ghi vào file.
+        
+        Cấu trúc bản ghi (Record Structure - Total bytes: self.record_size):
+        - Username (10 bytes) | Password (10 bytes)
+        - Games Played (4 bytes) | Total Wins (4 bytes)
+        - Cur Streak (4 bytes) | Best Streak (4 bytes)
+        - Win Easy/Normal/Hard (4x3 = 12 bytes)
+        - Last Played Date (10 bytes)
+        - Resume Mode (1 byte) | Resume Diff (1 byte)
+        - Resume Target (13 bytes) | Resume Attempts (69 bytes)
+
+        Args:
+            None
+
+        Returns:
+            None: Ghi trực tiếp vào file self.file_path.
+        """
             
         with open(self.file_path, "wb") as f:
             current = self.head
@@ -71,7 +90,18 @@ class UserManager:
                 current = current.next
 
     def load_data(self):
-        """Tải dữ liệu người chơi từ file nhị phân."""
+        """Đọc file nhị phân và khôi phục lại danh sách liên kết người chơi.
+
+        Hàm đọc lần lượt từng block dữ liệu (kích thước = self.record_size),
+        giải mã (decode) các byte thành string hoặc integer và tạo lại các 
+        UserNode tương ứng.
+
+        Args:
+            None
+
+        Returns:
+            None: Cập nhật trực tiếp vào self.head (tạo linked list mới).
+        """
         if not os.path.exists(self.file_path):
             return
 
@@ -105,14 +135,35 @@ class UserManager:
 
 # HÀM RESUME NGƯỜI CHƠI
     def have_resume(self, username):
-        """Kiểm tra người chơi có resume hay không."""
+        """Kiểm tra xem người chơi có ván game nào chưa hoàn thành không.
+
+        Điều kiện có resume:
+        - Chuỗi `resume_attempts` không rỗng.
+        - Số lượt đoán chưa đạt tối đa (khác 6).
+
+        Args:
+            username (str): Tên người dùng cần kiểm tra.
+
+        Returns:
+            bool: True nếu có game đang dang dở, False nếu không.
+        """
         user = self.get_player(username)
         if len(user.resume_attempts) == 0 or len(user.resume_attempts) == 6:
             return False
         return True
 
     def get_resume(self, username):
-        """Lấy resume của người chơi."""
+        """Truy xuất thông tin chi tiết của ván game đang được lưu.
+
+        Giải mã các mã số (1, 2, 3) thành các chuỗi cấu hình (easy, normal, hard...)
+        để khởi tạo lại môi trường chơi game.
+
+        Args:
+            username (str): Tên người dùng.
+
+        Returns:
+            tuple: (mode, diff, target_word, list_of_attempts)
+        """
         user = self.get_player(username)
         if user.resume_mode == 1:
             mode = "easy"
@@ -131,7 +182,21 @@ class UserManager:
         return mode, diff, target, attempts
 
     def update_resume (self, mode, diff, target, attempts, username):
-        """Cập nhật resume của người chơi."""
+        """Cập nhật trạng thái ván game hiện tại vào thông tin người dùng.
+
+        Chuyển đổi các cấu hình game (str) thành mã số (int) để tiết kiệm 
+        không gian lưu trữ nhị phân.
+
+        Args:
+            mode (str): Chế độ chơi (easy/normal/hard).
+            diff (str): Loại từ điển (vietnamese/english/math).
+            target (str): Từ bí mật của ván đấu.
+            attempts (list[str]): Danh sách các từ đã đoán.
+            username (str): Tên người dùng.
+
+        Returns:
+            None: Gọi hàm save_data() để ghi xuống đĩa ngay lập tức.
+        """
         user = self.get_player(username)
 
         if mode == "easy":
@@ -152,7 +217,16 @@ class UserManager:
         self.save_data()
 
     def clear_resume(self, username):
-        """Xóa resume của người chơi."""
+        """Xóa dữ liệu resume khi ván game kết thúc (Thắng hoặc Thua).
+
+        Reset các trường thông tin resume về giá trị mặc định (0 hoặc rỗng).
+
+        Args:
+            username (str): Tên người dùng.
+
+        Returns:
+            None: Gọi hàm save_data() để cập nhật file.
+        """
         user = self.get_player(username)
         user.resume_mode = 0
         user.resume_diff = 0
@@ -163,14 +237,30 @@ class UserManager:
 
 # HÀM LIÊN QUAN ĐẾN KIỂM SOÁT LƯỢT CHƠI TRONG NGÀY
     def check_can_play(self, username):
-        """Kiểm tra xem người chơi có thể chơi trong ngày hôm nay hay không."""
+        """Kiểm tra giới hạn chơi Daily Challenge (chỉ cho phép 1 lần/ngày).
+
+        So sánh ngày chơi cuối cùng (`last_played`) với ngày hiện tại của hệ thống.
+
+        Args:
+            username (str): Tên người dùng.
+
+        Returns:
+            bool: True nếu hôm nay chưa chơi, False nếu đã chơi rồi.
+        """
         user = self.get_player(username)
         if user.last_played == str(date.today()):
             return False
         return True
 
     def mark_played_today(self, username):
-        """Đánh dấu người chơi đã chơi trong ngày hôm nay."""
+        """Đánh dấu người chơi đã hoàn thành lượt chơi trong ngày hôm nay.
+
+        Args:
+            username (str): Tên người dùng.
+
+        Returns:
+            None: Cập nhật ngày hiện tại vào `last_played` và lưu file.
+        """
         user = self.get_player(username)
         user.last_played = str(date.today())
         self.save_data()
@@ -178,18 +268,42 @@ class UserManager:
 
 # HÀM THAO TÁC LINKEDLIST NGƯỜI CHƠI
     def is_empty(self):
-        """Kiểm tra xem danh sách người chơi có rỗng hay không."""
+        """Kiểm tra danh sách liên kết người dùng có rỗng không.
+
+        Args:
+            None
+
+        Returns:
+            bool: True nếu self.head là None.
+        """
         return self.head == None
 
     def insert_at_beginning(self, username, password):
-        """Chèn một người chơi mới vào đầu danh sách liên kết."""
+        """Tạo node người dùng mới và chèn vào đầu danh sách liên kết (O(1)).
+
+        Args:
+            username (str): Tên đăng nhập.
+            password (str): Mật khẩu.
+
+        Returns:
+            UserNode: Node người dùng vừa được tạo.
+        """
         new_node = UserNode(username, password)
         new_node.next = self.head
         self.head = new_node
         return new_node
 
     def get_player(self, username):
-        """Lấy thông tin người chơi dựa trên tên đăng nhập."""
+        """Tìm kiếm và trả về object UserNode dựa trên username.
+
+        Hàm bao đóng (wrapper) cho hàm `player_is_exist`.
+
+        Args:
+            username (str): Tên đăng nhập cần tìm.
+
+        Returns:
+            UserNode | bool: Trả về object UserNode nếu tìm thấy, False nếu không.
+        """
         # if self.is_empty():
         #     user = self.create_new_player(username, password)
         # elif self.player_is_exist(username) == False:
@@ -199,12 +313,28 @@ class UserManager:
         return user
 
     def create_new_player(self, username, password):
-        """Tạo một người chơi mới và thêm vào danh sách."""
+        """Hàm tiện ích (Wrapper) để tạo người chơi mới.
+
+        Args:
+            username (str): Tên đăng nhập.
+            password (str): Mật khẩu.
+
+        Returns:
+            UserNode: Node người dùng mới.
+        """
         new_user = self.insert_at_beginning(username, password)
         return new_user
 
     def player_is_exist(self,username):
-        """Kiểm tra xem người chơi có tồn tại trong danh sách hay không."""
+        """Duyệt danh sách liên kết để tìm người chơi (Linear Search).
+
+        Args:
+            username (str): Tên đăng nhập cần kiểm tra.
+
+        Returns:
+            UserNode: Trả về node người dùng nếu tìm thấy.
+            False: Nếu duyệt hết danh sách mà không thấy.
+        """
         if self.is_empty():
             print("not exist")
             return
@@ -216,7 +346,18 @@ class UserManager:
         return False
     
     def delete_player(self, username):
-        """Xóa người chơi khỏi danh sách dựa trên tên đăng nhập."""
+        """Xóa một người dùng khỏi danh sách liên kết.
+
+        Xử lý 2 trường hợp:
+        1. Xóa node đầu (Head).
+        2. Xóa node ở giữa hoặc cuối danh sách.
+
+        Args:
+            username (str): Tên người dùng cần xóa.
+
+        Returns:
+            None
+        """
         cur = self.head
         if self.head.username == username:
             self.head = self.head.next
@@ -228,7 +369,19 @@ class UserManager:
             cur = cur.next    
     
     def update_data(self, username, is_win, which_diff):
-        """Cập nhật dữ liệu người chơi sau mỗi trận chơi."""
+        """Cập nhật các chỉ số thống kê sau khi kết thúc một ván game.
+
+        Cập nhật: Tổng số game, số trận thắng, chuỗi thắng (Streak), 
+        thắng theo độ khó (Easy/Normal/Hard).
+
+        Args:
+            username (str): Tên người dùng.
+            is_win (bool): Kết quả ván đấu (True = Thắng).
+            which_diff (str): Độ khó của ván đấu vừa chơi.
+
+        Returns:
+            None: Chỉ cập nhật trong RAM (cần gọi save_data sau đó).
+        """
         user = self.get_player(username)
         user.games_played +=1
         if is_win == True:
@@ -248,50 +401,78 @@ class UserManager:
 
 # HÀM LIÊN QUAN ĐẾN XẾP HẠNG NGƯỜI CHƠI
     def ranking_total_games(self):
-            """Lấy bảng xếp hạng người chơi dựa trên số trận đã chơi."""
-            if self.is_empty():
-                print("No player")
-                return
-            
-            rank_list = []
-            itr = self.head
-            while itr:
-                rank_list.append(itr) 
-                itr = itr.next
-            
-            rank_list.sort(key=lambda x: x.games_played, reverse=True)
-            top_5 = rank_list[:5]
-            list = []
+        """Tạo bảng xếp hạng Top 5 người chơi chăm chỉ nhất (nhiều game nhất).
 
-            for i in top_5:
-                list.append((i.username, i.games_played))
-            return list
+        Chuyển Linked List thành List thường, sắp xếp giảm dần theo `games_played`
+        và lấy 5 phần tử đầu tiên.
+
+        Args:
+            None
+
+        Returns:
+            list[tuple]: Danh sách các tuple (username, games_played).
+        """
+        if self.is_empty():
+            print("No player")
+            return
+        
+        rank_list = []
+        itr = self.head
+        while itr:
+            rank_list.append(itr) 
+            itr = itr.next
+        
+        rank_list.sort(key=lambda x: x.games_played, reverse=True)
+        top_5 = rank_list[:5]
+        list = []
+
+        for i in top_5:
+            list.append((i.username, i.games_played))
+        return list
     
     def ranking_total_wins_games(self):
-            """Lấy bảng xếp hạng người chơi dựa trên số trận thắng."""
-            if self.is_empty():
-                print("No player")
-                return
-            
-            rank_list = []
-            itr = self.head
-            while itr:
-                rank_list.append(itr) 
-                itr = itr.next
-            
+        """Tạo bảng xếp hạng Top 5 cao thủ (nhiều trận thắng nhất).
 
-            rank_list.sort(key=lambda x: x.total_wins, reverse=True)
-            top_5 = rank_list[:5]
-            list = []
+        Sắp xếp giảm dần theo tiêu chí `total_wins`.
 
-            for i in top_5:
-                list.append((i.username, i.total_wins))
-            return list
+        Args:
+            None
+
+        Returns:
+            list[tuple]: Danh sách các tuple (username, total_wins).
+        """
+        if self.is_empty():
+            print("No player")
+            return
+        
+        rank_list = []
+        itr = self.head
+        while itr:
+            rank_list.append(itr) 
+            itr = itr.next
+        
+
+        rank_list.sort(key=lambda x: x.total_wins, reverse=True)
+        top_5 = rank_list[:5]
+        list = []
+
+        for i in top_5:
+            list.append((i.username, i.total_wins))
+        return list
 
 
 # HÀM BIỂU ĐỒ CỘT SỐ TRẬN THẮNG THEO ĐỘ KHÓ
     def bar_chart_diff(self, username):
-        """Lấy dữ liệu để vẽ biểu đồ cột cho số trận thắng theo từng độ khó."""
+        """Chuẩn bị dữ liệu cho biểu đồ cột phân bố chiến thắng.
+
+        Trích xuất số trận thắng ở từng cấp độ khó để vẽ biểu đồ thống kê cá nhân.
+
+        Args:
+            username (str): Tên người dùng.
+
+        Returns:
+            dict: Dictionary dạng {"Easy": int, "Normal": int, "Hard": int}.
+        """
         user = self.get_player(username)
         return {
             "Easy": user.win_easy,

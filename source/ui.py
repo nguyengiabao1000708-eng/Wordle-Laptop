@@ -3,7 +3,22 @@ from . import file_process as f
 
 # HÀM BẢNG HIỆN CHỮ
 def render_wordle_board(attempts, wordle):
-    """Hiển thị bảng trò chơi Wordle với các trạng thái đoán."""
+    """Tạo và hiển thị lưới HTML biểu diễn trạng thái hiện tại của trò chơi.
+
+    Hàm này xây dựng chuỗi HTML chứa các ô chữ (tiles). Màu sắc của ô được 
+    xác định bởi trạng thái đoán (Xanh/Vàng/Xám) lấy từ object `wordle`.
+    Nó hiển thị:
+    1. Các từ đã đoán (có màu).
+    2. Từ đang nhập dở (chưa có màu).
+    3. Các hàng trống còn lại.
+
+    Args:
+        attempts (list[str]): Danh sách các từ người chơi đã đoán.
+        wordle (Wordle): Object chứa logic game và từ bí mật.
+
+    Returns:
+        None: Render trực tiếp HTML vào giao diện Streamlit bằng st.markdown.
+    """
     cur = st.session_state.cur_guess
     board_html = "<div class = 'wordle-grid'>"
 
@@ -40,18 +55,52 @@ def render_wordle_board(attempts, wordle):
 
 # HÀM BÀN PHÍM VÀ MỘT SỐ THAO TÁC 
 def add_char(char, length_limit):
-    """Thêm ký tự vào đoán hiện tại nếu chưa đạt giới hạn độ dài."""
+    """Thêm một ký tự vào chuỗi đoán hiện tại (callback function).
+
+    Hàm được gọi khi người dùng nhấn phím ảo. Nó kiểm tra giới hạn độ dài
+    trước khi cập nhật vào `st.session_state.cur_guess`.
+
+    Args:
+        char (str): Ký tự người dùng vừa chọn.
+        length_limit (int): Độ dài tối đa cho phép của từ (thường là 5 hoặc độ dài từ bí mật).
+
+    Returns:
+        None: Cập nhật trực tiếp vào st.session_state.
+    """
     if len(st.session_state.cur_guess) < length_limit:
         st.session_state.cur_guess += char
     else:
         st.warning("Đã đủ chữ!")
 
 def del_char():
-    """Xóa ký tự cuối cùng khỏi đoán hiện tại."""
+    """Xóa ký tự cuối cùng trong chuỗi đoán hiện tại (Backspace).
+
+    Hàm xử lý cắt chuỗi (string slicing) để loại bỏ ký tự vừa nhập sai.
+
+    Args:
+        None
+
+    Returns:
+        None: Cập nhật trực tiếp vào st.session_state.
+    """
     st.session_state.cur_guess = st.session_state.cur_guess[:-1]
 
 def math_logic(guess):
-    """Kiểm tra tính hợp lệ của biểu thức toán học."""
+    """Kiểm tra tính hợp lệ về mặt toán học và cú pháp của biểu thức.
+
+    Hàm thực hiện các kiểm tra nghiêm ngặt cho chế độ Math Wordle:
+    1. Phải có đúng một dấu bằng '='.
+    2. Không có toán tử ở đầu hoặc cuối.
+    3. Vế trái là biểu thức, vế phải là số kết quả.
+    4. Kết quả tính toán phải là số nguyên.
+    5. Hai vế phải bằng nhau về giá trị.
+
+    Args:
+        guess (str): Chuỗi biểu thức người dùng nhập (ví dụ: "2+3=5").
+
+    Returns:
+        bool: True nếu biểu thức hợp lệ và đúng toán học, False nếu vi phạm.
+    """
     a, b = guess.split("=")
     result = False
 
@@ -72,10 +121,27 @@ def math_logic(guess):
 
 
 def submit_char(length_limit, wordle, um):
-    """Xử lý khi người dùng nhấn nút ENTER để gửi đoán."""
+    """Xử lý sự kiện nộp từ đoán (Enter) và cập nhật trạng thái game.
+
+    Hàm thực hiện một loạt các hành động:
+    1. Validate độ dài, từ có nghĩa (check_valid_words), hoặc logic toán.
+    2. Cập nhật lịch sử đoán vào `wordle.attempts`.
+    3. Lưu trạng thái game (Resume) vào database thông qua `um`.
+    4. Xóa Redo stack (do có nhánh mới).
+    5. Cập nhật thuật toán AI (lọc candidates cho gợi ý).
+    6. Kiểm tra điều kiện Thắng/Thua.
+
+    Args:
+        length_limit (int): Độ dài bắt buộc của từ.
+        wordle (Wordle): Object xử lý logic game.
+        um (UserManager): Object quản lý dữ liệu người dùng (để lưu resume).
+
+    Returns:
+        None: Cập nhật toàn bộ trạng thái game trong st.session_state.
+    """
     guess = st.session_state.cur_guess
     if len(guess) < len(wordle.secret):
-        st.warning(f"Vui lòng nhập đủ {wordle.secret} chữ cái!")
+        st.warning(f"Vui lòng nhập đủ {wordle.WORDS_LENGTH} chữ cái!")
     elif wordle.already_guessed(guess):
         st.warning("Từ này đã được đoán!")
     elif st.session_state.mode == "math" and math_logic(guess) == False :
@@ -100,7 +166,17 @@ def submit_char(length_limit, wordle, um):
     st.session_state.cur_guess = ""
 
 def get_disabled_chars(wordle):
-    """Lấy danh sách các ký tự đã bị vô hiệu hóa trên bàn phím."""
+    """Xác định các phím cần bị vô hiệu hóa (tô màu xám đậm).
+
+    Duyệt qua lịch sử các lần đoán, tìm những ký tự đã đoán sai (không có trong secret)
+    để làm mờ trên bàn phím ảo, giúp người chơi loại trừ.
+
+    Args:
+        wordle (Wordle): Object chứa secret word và lịch sử đoán.
+
+    Returns:
+        set: Tập hợp các ký tự cần disabled.
+    """
     disabled_chars = []
     for guess in wordle.attempts:
         for char in guess:
@@ -109,7 +185,21 @@ def get_disabled_chars(wordle):
     return set(disabled_chars)
 
 def render_keyboard(length_limit, wordle, um):
-    """Hiển thị bàn phím ảo và xử lý các nút bấm."""
+    """Render bàn phím ảo tương tác tùy theo chế độ chơi.
+
+    Hỗ trợ 3 layout bàn phím:
+    - Tiếng Anh/Việt: QWERTY.
+    - Toán học: Số và các dấu phép tính (+, -, *, /, =).
+    Các phím được tô màu (xanh/vàng/xám) dựa trên trạng thái game.
+
+    Args:
+        length_limit (int): Độ dài từ (truyền vào callback add_char).
+        wordle (Wordle): Dùng để xác định màu sắc phím và logic Undo/Redo.
+        um (UserManager): Truyền vào callback submit_char để lưu dữ liệu.
+
+    Returns:
+        None: Render các nút bấm (st.button) ra giao diện.
+    """
     if st.session_state.mode != "math":
         if  st.session_state.mode == "vietnamese":
             keys = ["QWERTYUIOP", "ASDFGHJKL", "ZXCV BNM"]
@@ -195,7 +285,18 @@ def render_keyboard(length_limit, wordle, um):
 
 # HÀM ĐIỀU HƯỚNG VÀ THAY ĐỔI CHẾ ĐỘ, TRẠNG THÁI
 def change_mode():
-    """Cho phép người dùng thay đổi chế độ chơi và độ khó."""
+    """Hiển thị menu Popover để thay đổi chế độ chơi và độ khó.
+
+    Cho phép chuyển đổi giữa English/Vietnamese/Math và Easy/Normal/Hard.
+    Lưu ý: Khi đổi mode, toàn bộ trạng thái game hiện tại (từ đang đoán, 
+    lịch sử thắng thua tạm thời) sẽ bị reset để bắt đầu ván mới.
+
+    Args:
+        None
+
+    Returns:
+        None: Hiển thị UI trong một st.popover.
+    """
     with st.popover("Đổi Mode", icon= "😎"):
         st.write(f"Mode Hiện tại: {st.session_state.mode}, {st.session_state.diff} ")
 
@@ -248,7 +349,17 @@ def change_mode():
         d3.button("Hard", on_click=handle_diff_change, args=("hard",), disabled= disabled_state)
 
 def change_state():
-    """Cho phép người dùng thay đổi trạng thái chơi (cơ bản hoặc nâng cao)."""
+    """Hiển thị menu Popover để nâng cấp trạng thái tài khoản.
+
+    Cho phép chuyển đổi giữa Basic (miễn phí) và Premium (trả phí).
+    Reset lại game khi thay đổi trạng thái để áp dụng logic mới (ví dụ: Daily word vs Random word).
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     with st.popover("Đổi State", icon= "🎯"):
         st.write(f"State Hiện tại: {st.session_state.state} ")
         st.write("Chọn trạng thái:")
@@ -270,7 +381,17 @@ def change_state():
         s2.button("Premium", on_click=handle_state_change, args=("premium",))
 
 def navigation(wordle):
-    """Thanh điều hướng trang chủ"""
+    """Thanh điều hướng chính (Top Bar) của trang chủ.
+
+    Chứa các nút chức năng: Settings, Stats, Ranking, Login và Hint (Gợi ý AI).
+    Nút Hint sẽ kích hoạt thuật toán Information Theory tốn tài nguyên tính toán.
+
+    Args:
+        wordle (Wordle): Object cần thiết để tính toán Hint (AI).
+
+    Returns:
+        None
+    """
     col1, col2, col3, col4, col5 = st.columns([1,1,1,1,1])
     with col1:
         with st.popover("Settings", icon= "⚙️", use_container_width=True):
@@ -293,7 +414,17 @@ def navigation(wordle):
             st.info(f"Từ tối ưu nhất là: **{best_guess}**")
 
 def navigation_subpages():
-    """Thanh điều hướng trang phụ"""
+    """Thanh điều hướng dành riêng cho các trang phụ (Ranking, Stats...).
+
+    Giống thanh điều hướng chính nhưng có nút 'Trang chủ' để quay về 
+    và không có nút Settings/Hint.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     col1, col2, col3, col4 = st.columns([1.5, 2, 2, 1.2])
     with col1:
         if st.button("Trang chủ", icon= "🏠", use_container_width=True):
