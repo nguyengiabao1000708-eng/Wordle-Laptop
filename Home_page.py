@@ -26,8 +26,25 @@ def init_states():
     if "has_resume" not in st.session_state:
         st.session_state.has_resume = False
 
+    if st.session_state.mode == "math":
+        DATA_PATH = "source/data/words_data/valid_word_with_length_n.txt"
+    else:
+        DATA_PATH = "source/data/words_data/word_with_length_n.txt"
+
+    if "all_words" not in st.session_state:
+        st.session_state.all_words = get_all_words(DATA_PATH)
+    if "candidates" not in st.session_state:
+        st.session_state.candidates = get_all_words(DATA_PATH)
 
 # HÀM ĐỌC CSS VÀ HÀM CHỌN TỪ
+
+def get_all_words(file_path):
+    with open(file_path, "r") as f:
+        words = []
+        for i in f.readlines():
+            words.append(i.strip())
+    return words
+
 def local_css(file_name):
     """Đọc file CSS và áp dụng các kiểu dáng cho ứng dụng Streamlit."""
     with open (file_name) as f:
@@ -77,7 +94,7 @@ def main():
         wordle = st.session_state.wordle
         target = wordle.secret
 
-    ui.navigation()
+    ui.navigation(wordle)
     ui.render_wordle_board(wordle.attempts, wordle)
 
     if user:
@@ -131,6 +148,9 @@ def main():
                 del st.session_state.game_over
                 del st.session_state.cur_guess
                 del st.session_state.has_saved
+                del st.session_state.has_resume
+                del st.session_state.candidates
+                del st.session_state.all_words
                 st.rerun()
 
 if __name__ == "__main__":

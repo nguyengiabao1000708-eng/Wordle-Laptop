@@ -53,16 +53,23 @@ def del_char():
 def math_logic(guess):
     """Kiểm tra tính hợp lệ của biểu thức toán học."""
     a, b = guess.split("=")
+    result = False
+
     if guess.count('=') != 1:
         st.warning("Biểu thức phải chứa ĐÚNG một dấu '='")
     elif guess[-1] in '+-*/=' or guess[0] in '+-*/=':
         st.warning("Dấu '=' và các toán tử không thể ở đầu hoặc cuối biểu thức")
     elif len(a) < len(b):
         st.warning("Bên trái của '=' phải là một biểu thức và bên phải là một số")
-    elif type(eval(a)) != int:
+    elif eval(a) != int(eval(a)):
         st.warning("Kết quả của biểu thức PHẢI là một số nguyên") 
     elif eval(a) != int(b):
         st.warning("2 vế PHẢI bằng nhau")
+    else:
+        result = True
+
+    return result
+
 
 def submit_char(length_limit, wordle, um):
     """Xử lý khi người dùng nhấn nút ENTER để gửi đoán."""
@@ -71,15 +78,19 @@ def submit_char(length_limit, wordle, um):
         st.warning(f"Vui lòng nhập đủ {wordle.secret} chữ cái!")
     elif wordle.already_guessed(guess):
         st.warning("Từ này đã được đoán!")
-    elif st.session_state.mode == "math":
-        math_logic(guess)
+    elif st.session_state.mode == "math" and math_logic(guess) == False :
+        pass
     elif st.session_state.mode != "math" and not wordle.check_valid_words(guess,"source/data/words_data/word_with_length_n.txt"):
         st.warning("Từ không tồn tại")
     else:
         wordle.attempts.append(guess)
+
         if st.session_state.username:
             um.update_resume(st.session_state.mode, st.session_state.diff, wordle.secret, wordle.attempts, st.session_state.username)
+
         wordle.redo_stack.clear()
+        st.session_state.candidates =wordle.update_candidates(st.session_state.candidates, guess, wordle.get_pattern(guess, wordle.secret))
+
         if guess == wordle.secret:
             st.session_state.game_over = True
             st.session_state.is_win = True
@@ -200,7 +211,15 @@ def change_mode():
             f.main(new_mode, st.session_state.diff)
             st.session_state.mode = new_mode
             if "wordle" in st.session_state:
+                del st.session_state.is_win
                 del st.session_state.wordle
+                del st.session_state.game_over
+                del st.session_state.cur_guess
+                del st.session_state.has_saved
+                del st.session_state.has_resume
+                del st.session_state.candidates
+                del st.session_state.all_words
+            
 
         
         c1.button("Eng", on_click=handle_mode_change, args=("english",))
@@ -213,7 +232,14 @@ def change_mode():
             f.main(st.session_state.mode , new_diff)
             st.session_state.diff = new_diff
             if "wordle" in st.session_state:
+                del st.session_state.is_win
                 del st.session_state.wordle
+                del st.session_state.game_over
+                del st.session_state.cur_guess
+                del st.session_state.has_saved
+                del st.session_state.has_resume
+                del st.session_state.candidates
+                del st.session_state.all_words
 
 
         d1, d2, d3 = st.columns(3)       
@@ -231,14 +257,21 @@ def change_state():
         def handle_state_change(new_state):
             st.session_state.state = new_state
             if "wordle" in st.session_state:
+                del st.session_state.is_win
                 del st.session_state.wordle
+                del st.session_state.game_over
+                del st.session_state.cur_guess
+                del st.session_state.has_saved
+                del st.session_state.has_resume
+                del st.session_state.candidates
+                del st.session_state.all_words
         
         s1.button("Basic", on_click=handle_state_change, args=("basic",))
         s2.button("Premium", on_click=handle_state_change, args=("premium",))
 
-def navigation():
+def navigation(wordle):
     """Thanh điều hướng trang chủ"""
-    col1, col2, col3, col4 = st.columns([1.5, 2, 2, 1.2])
+    col1, col2, col3, col4, col5 = st.columns([1,1,1,1,1])
     with col1:
         with st.popover("Settings", icon= "⚙️", use_container_width=True):
             change_mode()
@@ -253,6 +286,11 @@ def navigation():
     with col4:
         if st.button("Login", icon= "👤", use_container_width=True):
             st.switch_page("pages/login.py")
+    with col5:
+        if st.button("Hint", icon="💡", use_container_width=True):
+            with st.spinner("AI đang tính toán..."):
+                best_guess = wordle.find_best_hint(st.session_state.all_words, st.session_state.candidates)
+            st.info(f"Từ tối ưu nhất là: **{best_guess}**")
 
 def navigation_subpages():
     """Thanh điều hướng trang phụ"""

@@ -1,5 +1,7 @@
 from collections import Counter
 import streamlit as st 
+import math
+from collections import Counter
 
 class Wordle:
     MAX_ATTEMPTS = 6
@@ -22,26 +24,15 @@ class Wordle:
     
     def get_guess_statuses(self, guess):
         """Trả về danh sách các class CSS cho từng chữ cái trong từ đoán."""
-        guess = guess.upper()
-
+        pattern = self.get_pattern(guess, self.secret)
         result = ["tile-absent"] * self.WORDS_LENGTH
-        
-        letter_counts = Counter(self.secret)
-        
-        for i in range(self.WORDS_LENGTH):
-            if guess[i] == self.secret[i]:
-                result[i] = "tile-correct"
-                letter_counts[guess[i]] -= 1
-                
-        for i in range(self.WORDS_LENGTH):
-            if result[i] != "tile-correct": 
-                char = guess[i]
-                if char in letter_counts and letter_counts[char] > 0:
-                    result[i] = "tile-present"
-                    letter_counts[char] -= 1
-                    
+        for i in range(len(pattern)):
+            if pattern[i] == 2:
+                result[i] =  "tile-correct"
+            elif pattern[i] == 1:
+                result[i] = "tile-present"
         return result
-    
+
     def is_solved(self):
         """Kiểm tra xem đã thắng chưa."""
         if self.attempts[-1] == self.secret:
@@ -85,5 +76,73 @@ class Wordle:
         """Kiểm tra xem từ đã được đoán trước đó hay chưa."""
         return guess in self.attempts
     
-
+# HÀM INFORMATIONT THEORY (HINT WORDLE)
     
+    def get_pattern(self, guess, secret):
+        """Hàm lõi trả về tuple số (2: Green, 1: Yellow, 0: Grey)"""
+        guess = guess.upper()
+        secret = secret.upper()
+        length = len(guess)
+        result = [0] * length
+        
+
+        letter_counts = Counter(secret)
+        
+        for i in range(length):
+            if guess[i] == secret[i]:
+                result[i] = 2
+                letter_counts[guess[i]] -= 1
+                
+        for i in range(length):
+            if result[i] == 0: 
+                char = guess[i]
+                if char in letter_counts and letter_counts[char] > 0:
+                    result[i] = 1
+                    letter_counts[char] -= 1
+                    
+        return tuple(result)
+    
+    def get_distribution(self, guess, candidates):
+        distribution = {}
+        for cand in candidates:
+            pattern = self.get_pattern(guess, cand)
+            if pattern not in distribution:
+                distribution[pattern] = 1
+            else:
+                distribution[pattern] += 1
+        return distribution
+    
+    def calculate_entropy(self, distribution, total_candidates):
+        entropy = 0.0   
+        for value in distribution.values():
+            p = value/total_candidates
+            if p > 0:
+                entropy -= p * math.log2(p)
+
+        return entropy
+
+    def find_best_hint(self, all_words, candidates):
+        best_word = None
+        max_entropy = -1
+
+        for word in all_words:
+            dist = self.get_distribution(word, candidates)
+            
+            entropy = self.calculate_entropy(dist, len(candidates))
+            
+            if entropy > max_entropy:
+                max_entropy = entropy
+                best_word = word
+        if len(st.session_state.candidates) == 1 :
+            return st.session_state.candidates[0]
+                
+        return best_word
+    
+    def update_candidates(self, current_candidates, guess, actual_pattern):
+        new_candidates = []
+        
+        for cand in current_candidates:
+            if self.get_pattern(guess, cand) == actual_pattern:
+                new_candidates.append(cand)
+                
+        return new_candidates
