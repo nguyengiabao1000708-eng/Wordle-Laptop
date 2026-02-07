@@ -19,6 +19,7 @@
     - Có thể sẽ còn 1 số lỗi có thể xuất hiện trong quá trình chơi vì chưa được test đủ nhiều
     - Có 1 số tính năng chỉ nên áp dụng ở premium và khi ở basic sẽ hơi trục trặc nhẹ hoặc ngược lại
     - Vid hướng dẫn: https://youtu.be/JiqYQ7pFNBo
+    - Github repository: https://github.com/nguyengiabao1000708-eng/Wordle-Laptop.git
 
 - Gameplay flow:
     - Vào game đăng nhập
