@@ -1,4 +1,3 @@
-import os
 from datetime import date
 
 class UserNode:
@@ -102,9 +101,6 @@ class UserManager:
         Returns:
             None: Cập nhật trực tiếp vào self.head (tạo linked list mới).
         """
-        if not os.path.exists(self.file_path):
-            return
-
         self.head = None
         with open(self.file_path, "rb") as f:
             while True:
@@ -219,7 +215,7 @@ class UserManager:
     def clear_resume(self, username):
         """Xóa dữ liệu resume khi ván game kết thúc (Thắng hoặc Thua).
 
-        Reset các trường thông tin resume về giá trị mặc định (0 hoặc rỗng).
+        Reset các thông tin resume về giá trị mặc định (0 hoặc rỗng).
 
         Args:
             username (str): Tên người dùng.

@@ -2,7 +2,7 @@ pre = "source/data/words_data/"
 valid_words_n = "source/data/words_data/valid_word_with_length_n.txt"
 words_n = "source/data/words_data/word_with_length_n.txt"
 
-def choose_file(n,file_input,file_output):
+def choose_file(n, file_input, file_output):
     """Lọc và lưu các từ có độ dài quy định từ file nguồn sang file đích.
 
         Hàm này đọc toàn bộ dòng từ file đầu vào, thực hiện chuẩn hóa (xóa khoảng trắng 

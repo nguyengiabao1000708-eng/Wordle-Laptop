@@ -31,11 +31,11 @@ class Wordle:
     def attempts_remaining(self):
         """Tính toán số lượt đoán còn lại của người chơi.
 
-                Args:
-                    None
+            Args:
+                None
 
-                Returns:
-                    int: Số lượt chơi còn lại (MAX_ATTEMPTS - số lượt đã đoán).
+            Returns:
+                int: Số lượt chơi còn lại (MAX_ATTEMPTS - số lượt đã đoán).
         """
         left = self.MAX_ATTEMPTS - len(self.attempts)
         return left
@@ -255,7 +255,7 @@ class Wordle:
 
         Returns:
             str: Từ có giá trị entropy cao nhất (từ gợi ý tốt nhất).
-                 Nếu entropy = 0 (không loại được từ nào), trả về từ đầu tiên trong candidates.
+                Nếu entropy = 0 (không loại được từ nào), trả về từ đầu tiên trong candidates.
         """
         best_word = None
         max_entropy = -1

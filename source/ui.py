@@ -55,7 +55,7 @@ def render_wordle_board(attempts, wordle):
 
 # HÀM BÀN PHÍM VÀ MỘT SỐ THAO TÁC 
 def add_char(char, length_limit):
-    """Thêm một ký tự vào chuỗi đoán hiện tại (callback function).
+    """Thêm một ký tự vào chuỗi đoán hiện tại.
 
     Hàm được gọi khi người dùng nhấn phím ảo. Nó kiểm tra giới hạn độ dài
     trước khi cập nhật vào `st.session_state.cur_guess`.
@@ -188,7 +188,8 @@ def render_keyboard(length_limit, wordle, um):
     """Render bàn phím ảo tương tác tùy theo chế độ chơi.
 
     Hỗ trợ 3 layout bàn phím:
-    - Tiếng Anh/Việt: QWERTY.
+    - Tiếng Anh: QWERTY...
+    - Tiếng Việt: QWERTY...(có dấu cách)
     - Toán học: Số và các dấu phép tính (+, -, *, /, =).
     Các phím được tô màu (xanh/vàng/xám) dựa trên trạng thái game.
 
